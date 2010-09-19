@@ -92,7 +92,7 @@ class GameWindow(pygame.Surface):
         self.sound_directory = '../sound/'
         self.quack = pygame.mixer.Sound('%s/quack.wav' % self.sound_directory)
         self.delete_sound = None
-        #self.play_random_music()
+        self.play_random_music()
         
     def play_random_music(self):
         variations = [var for var in os.listdir(self.sound_directory) if var.startswith('var')]

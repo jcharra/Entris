@@ -2,9 +2,8 @@
 ENTRIS - an enhanced Tetris clone 
 ---------------------------------
 
-Written in August 2010 by Johannes Charra using 
-Python2.6 and consequently excessive duck typing
-(pun intended).
+Written in August/September 2010 by Johannes Charra using 
+Python2.6 and consequently excessive duck typing (pun intended).
 
 
 Controls
