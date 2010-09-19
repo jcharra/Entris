@@ -1,0 +1,17 @@
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/threading.py", line 525, in __bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/threading.py", line 477, in run
+    self.__target(*self.__args, **self.__kwargs)
+  File "/Users/johannescharra/Python/Entris/src/networking.py", line 40, in synchronize
+    self.get_lines()
+  File "/Users/johannescharra/Python/Entris/src/networking.py", line 48, in get_lines
+    lines_received = int(self.connection.getresponse().read())
+  File "/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/httplib.py", line 974, in getresponse
+    response.begin()
+  File "/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/httplib.py", line 391, in begin
+    version, status, reason = self._read_status()
+  File "/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/httplib.py", line 355, in _read_status
+    raise BadStatusLine(line)
+BadStatusLine
