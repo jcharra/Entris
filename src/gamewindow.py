@@ -90,7 +90,7 @@ class GameWindow(pygame.Surface):
         self.status_window = StatusWindow((200, self.get_height()), self.game)
     
         self.sound_directory = '../sound/'
-        self.quack = pygame.mixer.Sound('%s/quack.wav' % self.sound_directory)
+        self.quack = pygame.mixer.Sound('%s/quack.ogg' % self.sound_directory)
         self.delete_sound = None
         self.play_random_music()
         
@@ -250,6 +250,16 @@ class GameWindow(pygame.Surface):
         left *= self.cell_width
         rect = pygame.Rect((left, top), (self.cell_width, self.cell_height))
         self.fill(color, rect)
+        self.fill(self.darken(color), pygame.Rect((left, top), (self.cell_width, 2)))
+        self.fill(self.darken(color), pygame.Rect((left, top), (2, self.cell_height)))
+        self.fill(self.lighten(color), pygame.Rect((left, top + self.cell_height - 2), (self.cell_width, 2)))
+        self.fill(self.lighten(color), pygame.Rect((left + self.cell_width - 2, top), (2, self.cell_height)))
+    
+    def lighten(self, color):
+        return [int(x * 0.2) for x in color]
+
+    def darken(self, color):
+        return [min(255, int(x * 1.3)) for x in color]
     
     def render_game_over_screen(self):
         """
