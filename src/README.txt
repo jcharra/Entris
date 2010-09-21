@@ -37,7 +37,6 @@ Open bugs
  - Segmentation fault when playing two subsequent games
    with different screen resolutions
  - Sporadic rotation errors (disallowed moves possible)
- - Server connection appears unstable
 
 
 Planned improvements

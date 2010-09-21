@@ -53,11 +53,17 @@ class ServerEventListener(object):
         self.updateThread.start()
 
     def synchronize(self):
-        while not self.game.started and not self.abort:
-            time.sleep(1)
+        while not self.abort:
             self.update_players_list()
+            time.sleep(1)
             if self.ask_for_start_permission():
-                self.game.started = True
+                break
+
+        # We have to update the player list once more, otherwise
+        # the game might be "started", and we see a winning screen
+        # because we falsely realize there are no players but us.
+        self.update_players_list()
+        self.game.started = True
         
         while not self.abort and not self.game.gameover:
             time.sleep(1)

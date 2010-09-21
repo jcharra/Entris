@@ -239,14 +239,13 @@ class Game(object):
         # delete the topmost n rows
         del self.cells[:self.column_nr * number_of_lines]
         
-        # insert a "checkered" row at the bottom
-        checkers, odd = divmod(self.column_nr, 2)
-        penalty_line = []
-        for _ in range(checkers):
-            penalty_line.extend(((100, 100, 100), 0))
-        penalty_line.extend(((100, 100, 100), ) * odd)
-        
-        self.cells.extend(penalty_line * number_of_lines)
+        # for each penalty, insert a row at the bottom having 
+        # a two-squared random gap 
+        for _ in range(number_of_lines):
+            penalty_line = [(100, 100, 100) for _ in range(self.column_nr)]
+            gap_index = random.randint(0, self.column_nr - 1)
+            penalty_line[gap_index:gap_index+1] = 0, 0
+            self.cells.extend(penalty_line * number_of_lines)
         
     def add_duck_observer(self, observer):
         self.duck_observers.append(observer)
