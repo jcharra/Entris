@@ -42,8 +42,6 @@ Open bugs
 Planned improvements
 --------------------
 
- - Make penalty rows easier to fill up (e.g. one or two free squares
-   per line instead of the checkered pattern)
  - Change music with each level
  - Improve tests in each modules (esp. the server stuff should
    tell us when it failed)
