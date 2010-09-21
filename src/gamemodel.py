@@ -61,33 +61,38 @@ class Game(object):
         
     def proceed(self):
         """
-        Takes one step in time
+        Takes one step in time.
         
         If there is a piece currently moving, move it if possible.
         Otherwise create a new one on top of the grid. 
         """
         
-        if not self.moving_piece:
-            if self.penalties:
-                self.insert_penalties()
-            
-            next_piece = self.get_next_piece()
-            self.insert_new_moving_piece(next_piece)
-            
-            if any([self.cells[i] for i in self.moving_piece.get_indexes()]):
-                self.gameover = True
-            
-        else:
+        if self.moving_piece:
             moved = self.move_piece("SOUTH")
             if not moved:
-                # turn the moving piece into lifeless concrete
+                # Cannot move downward any further
+                # => turn the moving piece into lifeless concrete
                 for idx in self.moving_piece.get_indexes():
                     self.cells[idx] = self.moving_piece.color
                 self.moving_piece = None
+        else:
+            
+            # Time to insert penalty lines, if any
+            if self.penalties:
+                self.insert_penalties()
+            
+            # create and insert a new piece
+            next_piece = self.get_next_piece()
+            self.insert_new_moving_piece(next_piece)
+            
+            # If there is any overlap with existing pieces, we're screwed
+            if any([self.cells[i] for i in self.moving_piece.get_indexes()]):
+                self.gameover = True
+            
         
     def rotate_piece(self, rotation_key, steps=1):
         """
-        Tries to rotate a piece
+        Tries to rotate the current piece
         """
 
         if (not self.moving_piece 
@@ -102,6 +107,7 @@ class Game(object):
         direction given by <clockwise> is possible.
         """
         
+        # 1. Check illegal overlap
         rotated_indexes = self.moving_piece.get_indexes(added_rotation=steps)
         try:
             if any([self.cells[i] for i in rotated_indexes]):
@@ -109,8 +115,17 @@ class Game(object):
         except IndexError:
             return False
         
+        # 2. Check rotation across the vertical borders.
+        # This may look a little strange ... the idea is that if, after the 
+        # attempted rotation, there would be squares of the moving piece both 
+        # in the first and the last column, then the rotation must be illegal, 
+        # since it apparently crosses the vertical borders.
         x_coords = [x % self.column_nr for x in rotated_indexes]
-        # This works for game boards whose width is >= 10
+        
+        # See explanation above: If the rotation crossed a vertical border, then
+        # the minimum and maximum column indexes will be too far apart for a 
+        # coherent piece. The 9 is a little too arbitrary here ... should be 
+        # "less or equal the maximum piece width".
         return max(x_coords) - min(x_coords) < 9
         
     def move_piece(self, direction_key):
@@ -194,6 +209,9 @@ class Game(object):
             obs.notify(number_of_lines=len(row_indexes))
 
     def add_score(self, number_of_lines_cleared):
+        """
+        Increases the score. This ought to be refined a little.
+        """
         score_gain = (number_of_lines_cleared * 35) ** 2
         self.score += score_gain
         
