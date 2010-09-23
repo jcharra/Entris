@@ -56,20 +56,20 @@ if __name__ == '__main__':
         
         start_ok = True
         game_type = config['game_type']
-        
-        if game_type != "single":
-            
+
+        if game_type != ConfigScreen.SINGLE:
+            print "type %s != %s" % (game_type, ConfigScreen.SINGLE)
             # Player must provide some more input before being
             # allowed to start playing.
             start_ok = False
             
-            if game_type == 'create':
+            if game_type == ConfigScreen.CREATE:
                 number_input_screen = GetInputScreen(CONFIG_SCREEN_DIMENSIONS, 
                                            "Enter number of players", 
                                            input_type=GetInputScreen.NUMERIC,
                                            max_length=2,
                                            constraint=lambda x: int(x) in range(2, 11))
-            elif game_type == 'join':
+            elif game_type == ConfigScreen.JOIN:
                 number_input_screen = GetInputScreen(CONFIG_SCREEN_DIMENSIONS, 
                                            "Enter game ID to join", 
                                            input_type=GetInputScreen.NUMERIC,

@@ -1,7 +1,7 @@
 import sys
 import pygame
 
-from pygame.locals import K_RETURN, K_DOWN, K_UP, K_ESCAPE, K_BACKSPACE
+from pygame.locals import K_RETURN, K_DOWN, K_UP, K_ESCAPE, K_BACKSPACE, K_RIGHT, K_LEFT
 
 MENU_ITEM_HEIGHT = 50
 
@@ -21,12 +21,14 @@ class MenuItem(pygame.Surface):
             return
         self.current_index = (self.current_index + 1) % len(self.values)
         
+    def decrement_index(self):
+        if not self.values:
+            return
+        self.current_index = (self.current_index - 1) % len(self.values)
+        
     def get(self):
         if self.values:
             return self.values_dict[self.values[self.current_index]]
-        
-    def activate(self):
-        self.increment_index()
         
     def render(self):
         self.fill((0, 0, 0, 1))
@@ -43,9 +45,9 @@ class MenuItem(pygame.Surface):
         self.blit(text_img, text_pos)
 
 class ConfigScreen(pygame.Surface):
-    START_ITEM = MenuItem("Start")
+    SINGLE, CREATE, JOIN = 0, 1, 2
     
-    SPEED = MenuItem("Initial speed", dict(zip(range(1, 11), range(500, 249, -25))))
+    START_ITEM = MenuItem("Start")
     
     SCREEN_SIZE_SELECTION = MenuItem("Resolution",
                                      {"300 x 400": (300, 400), 
@@ -61,13 +63,12 @@ class ConfigScreen(pygame.Surface):
     DUCK_PROBABILITY_SELECTION = MenuItem("Duck probability", dict([("%i%%" % i, float(i)/100) 
                                                                     for i in range(11)]))
     
-    NEW_GAME_SELECTION = MenuItem("Game type", {"Single player": "single", 
-                                                "Create online game": "create", 
-                                                "Join online game": "join"})
+    NEW_GAME_SELECTION = MenuItem("Game type", {"Single player": SINGLE, 
+                                                "Create online game": CREATE, 
+                                                "Join online game": JOIN})
     
     MENU_ITEMS = [GAME_SIZE_SELECTION, 
                   SCREEN_SIZE_SELECTION, 
-                  SPEED,
                   DUCK_PROBABILITY_SELECTION,
                   NEW_GAME_SELECTION,
                   START_ITEM]
@@ -80,23 +81,19 @@ class ConfigScreen(pygame.Surface):
     
     def handle_keypress(self, key):
         if key == K_RETURN:
-            self.activate_current_item()
+            if self.MENU_ITEMS[self.selected_index] == self.START_ITEM:
+                self.finished = True
+        elif key == K_RIGHT:
+            self.MENU_ITEMS[self.selected_index].increment_index()
+        elif key == K_LEFT:
+            self.MENU_ITEMS[self.selected_index].decrement_index()
         elif key == K_DOWN:
             self.selected_index = (self.selected_index + 1) % len(self.MENU_ITEMS)
         elif key == K_UP:
             self.selected_index = (self.selected_index - 1) % len(self.MENU_ITEMS)
-    
-    def activate_current_item(self):
-        selected = self.MENU_ITEMS[self.selected_index]
-        if selected == self.START_ITEM:
-            self.finished = True
-            return
         
-        selected.activate()
-    
     def as_dict(self):
         d = {}
-        d['speed'] = self.SPEED.get()
         d['screen_size'] = self.SCREEN_SIZE_SELECTION.get()
         d['game_size'] = self.GAME_SIZE_SELECTION.get()
         d['duck_prob'] = self.DUCK_PROBABILITY_SELECTION.get()

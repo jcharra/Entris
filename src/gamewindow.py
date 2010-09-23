@@ -9,6 +9,7 @@ import threading
 
 from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
+from configscreen import ConfigScreen
 
 from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
@@ -48,7 +49,7 @@ class GameWindow(pygame.Surface):
         self.clock = 0
         
         # The threshold (in milliseconds) indicating that the next step is due
-        self.drop_interval = int(config['speed'])
+        self.drop_interval = 500
         
         # Game over or interrupted
         self.finished = False
@@ -60,7 +61,7 @@ class GameWindow(pygame.Surface):
 
         # Network stuff for playing online
         game_type = config['game_type']
-        if game_type == 'single':       
+        if game_type == ConfigScreen.SINGLE:       
             self.game.started = True
             self.listener = None
         else:
@@ -68,10 +69,10 @@ class GameWindow(pygame.Surface):
             # signal from the server.
             self.game.started = False
             
-            if game_type == 'create':
+            if game_type == ConfigScreen.CREATE:
                 game_id = create_new_game(size=config['game_info'])
                 logger.info('Created game no. %s with size %s' % (game_id, config['game_info']))
-            elif game_type == 'join':
+            elif game_type == ConfigScreen.JOIN:
                 game_id = config['game_info']
                 logger.info('Joining game no. %s' % game_id)
             else:
