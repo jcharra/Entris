@@ -27,7 +27,8 @@ Here you may choose
  - to play single player
  - to create or join an online multiplayer game
 
-Press ENTE-R to modify the respective selection.
+Use the left/right arrow keys to modify the respective selection.
+Selecting START and press ENTER to play.
 
 
 Open bugs

@@ -6,8 +6,9 @@ import time
 import threading
 from collections import deque 
 
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+# TODO: Put this into a config file
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ServerNotAvailable(Exception):
     pass

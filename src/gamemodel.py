@@ -12,8 +12,8 @@ logger.addHandler(handler)
 
 class Game(object):
 
-    def __init__(self, config):
-        self.column_nr, self.row_nr = self.dimensions = config['game_size']
+    def __init__(self, dimensions, duck_probability=0):
+        self.column_nr, self.row_nr = self.dimensions = dimensions
         self.cells = [0 for _ in range(self.column_nr) for _ in range(self.row_nr)]
         self.moving_piece = None
         
@@ -31,7 +31,6 @@ class Game(object):
         
         self.init_direction_map()
 
-        duck_probability = config['duck_prob']
         self.setup_part_probabilities(duck_probability)
         self.init_piece_queue()
         

@@ -15,8 +15,7 @@ from configscreen import ConfigScreen, GetInputScreen
 CONFIG_SCREEN_DIMENSIONS = (400, 300)
         
 def play_game(main_screen, config_screen):
-    game = Game(config_screen)
-    window = GameWindow(game, config_screen)
+    window = GameWindow(config_screen)
     
     # The true screen dimensions are available only after
     # the game window's dimensions have been "rounded" properly.
@@ -58,7 +57,6 @@ if __name__ == '__main__':
         game_type = config['game_type']
 
         if game_type != ConfigScreen.SINGLE:
-            print "type %s != %s" % (game_type, ConfigScreen.SINGLE)
             # Player must provide some more input before being
             # allowed to start playing.
             start_ok = False

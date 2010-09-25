@@ -10,6 +10,7 @@ import threading
 from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
 from configscreen import ConfigScreen
+from gamemodel import Game
 
 from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
@@ -30,16 +31,22 @@ class GameWindow(pygame.Surface):
     a separate class maybe ...
     """
     
-    def __init__(self, game, config):
-        self.game = game
+    def __init__(self, config):
         dimensions = config['screen_size']
-        self.cell_width = math.ceil(dimensions[0]/float(game.column_nr))
-        self.cell_height = math.ceil(dimensions[1]/float(game.row_nr))
-
-        self.dimensions = (self.cell_width * game.column_nr,
-                           self.cell_height * game.row_nr)
+        game_dimensions = config['game_size']
         
+        # TODO: This sucks ... dimensions are adjusted to result in a 
+        # rounded cell width/height. 
+        self.cell_width = math.ceil(dimensions[0]/float(game_dimensions[0]))
+        self.cell_height = math.ceil(dimensions[1]/float(game_dimensions[1]))
+        self.dimensions = (self.cell_width * game_dimensions[0],
+                           self.cell_height * game_dimensions[1])
         pygame.Surface.__init__(self, self.dimensions)
+
+        # The game model to be visualized by this class
+        # TODO: Remove duck prob parameter, separate part
+        # generator from game model.
+        self.game = Game(game_dimensions, config['duck_prob'])
 
         # To get notified when a duck appears, add self to the list
         # of duck observers. For quacking sounds only.
