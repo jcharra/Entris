@@ -15,18 +15,16 @@ class Game(object):
     def __init__(self, dimensions, duck_probability=0):
         self.column_nr, self.row_nr = self.dimensions = dimensions
         self.cells = [0 for _ in range(self.column_nr) for _ in range(self.row_nr)]
+        
+        # The active piece for the player to control
         self.moving_piece = None
         
-        self.score = 0
-        self.level = 0
-        self.next_level_threshold = 20000
         self.gameover = False
         
-        # Only relevant if it's a network game
-        # waiting for other players. Set to True
-        # or False by the controlling GameWindow
-        # instance (and possibly by the ServerEventListener
-        # instance in case of network games).
+        # Initially the game waits for a start signal
+        # from a controlling object (either the GameWindow
+        # instance owning the game, or - for network games
+        # the ServerEventListener instance)
         self.started = False
         
         self.init_direction_map()
@@ -36,11 +34,7 @@ class Game(object):
         
         self.duck_observers = []
         self.line_observers = []
-        
-        # For multiplayer mode only:
-        # Penalties can be received from other players
-        self.penalties = deque()
-        
+                
         logger.debug("Initialized game")
     
     def init_direction_map(self):
@@ -75,11 +69,6 @@ class Game(object):
                     self.cells[idx] = self.moving_piece.color
                 self.moving_piece = None
         else:
-            
-            # Time to insert penalty lines, if any
-            if self.penalties:
-                self.insert_penalties()
-            
             # create and insert a new piece
             next_piece = self.get_next_piece()
             self.insert_new_moving_piece(next_piece)
@@ -202,22 +191,14 @@ class Game(object):
         for _ in row_indexes:
             self.cells = [0 for _ in range(self.column_nr)] + self.cells
             
-        self.add_score(len(row_indexes))
-            
-        for obs in self.line_observers:
-            obs.notify(number_of_lines=len(row_indexes))
-
-    def add_score(self, number_of_lines_cleared):
-        """
-        Increases the score. This ought to be refined a little.
-        """
-        score_gain = (number_of_lines_cleared * 35) ** 2
-        self.score += score_gain
+        self.after_row_deletion(len(row_indexes))
         
-        if self.score >= self.next_level_threshold:
-            self.next_level_threshold += 50000
-            self.level += 1
-            logger.warn("Next level reached")
+    def after_row_deletion(self, number_of_rows):
+        """
+        Propagates the number of rows to registered line observers.
+        """
+        for obs in self.line_observers:
+            obs.notify(number_of_lines=number_of_rows)
 
     @property
     def moving_piece_indexes(self):
@@ -231,22 +212,48 @@ class Game(object):
         self.piece_queue.append(self.part_generator.next())
         return next
     
-    def insert_new_moving_piece(self, piece):
-        if piece == DUCK_INDICES:
+    def insert_new_moving_piece(self, template):
+        if template == DUCK_INDICES:
             for obs in self.duck_observers:
                 obs.duck_alert()
 
-        piece = Part(piece, self.column_nr)
-        piece.position_index = self.column_nr/2 - 1
-        piece.rotate(random.randint(0, 3), clockwise=True)
+        part = Part(template, self.column_nr)
+        part.position_index = self.column_nr/2 - 1
+        part.rotate(random.randint(0, 3), clockwise=True)
     
-        self.moving_piece = piece
+        self.moving_piece = part
+            
+    def add_duck_observer(self, observer):
+        self.duck_observers.append(observer)
+
+    def add_line_observer(self, observer):
+        self.line_observers.append(observer)
+    
+    def __repr__(self):
+        rows = []
+        for i in range(self.row_nr):
+            rows.append(",".join([str(self.cells[j]) 
+                                  for j in range(i * self.column_nr, (i + 1) * self.column_nr)]))
+        return "\n".join(rows)
+
+class MultiplayerGame(Game):
+    def __init__(self, dimensions, duck_probability=0):
+        Game.__init__(self, dimensions, duck_probability)
+
+        # Penalties can be received from other players
+        self.penalties = deque()
+
+    def proceed(self):
+        if not self.moving_piece and self.penalties:
+            # Time to insert penalty lines, if any
+            self.insert_penalties()
+
+        Game.proceed(self)
     
     def regurgitate(self, number_of_lines):
         """
         Puts a regurgitation event into the queue
         """
-        
         self.penalties.append(number_of_lines)
         logger.info("Penalties increased to %s" % self.penalties)
         
@@ -263,19 +270,31 @@ class Game(object):
             gap_index = random.randint(0, self.column_nr - 1)
             penalty_line[gap_index:gap_index+1] = 0, 0
             self.cells.extend(penalty_line * number_of_lines)
-        
-    def add_duck_observer(self, observer):
-        self.duck_observers.append(observer)
-
-    def add_line_observer(self, observer):
-        self.line_observers.append(observer)
     
-    def __repr__(self):
-        rows = []
-        for i in range(self.row_nr):
-            rows.append(",".join([str(self.cells[j]) 
-                                  for j in range(i * self.column_nr, (i + 1) * self.column_nr)]))
-        return "\n".join(rows)
+class SingleplayerGame(Game):
+    def __init__(self, dimensions, duck_probability=0):
+        Game.__init__(self, dimensions, duck_probability)
+
+        self.score = 0
+        self.level = 0
+        self.next_level_threshold = 20000
+
+    def after_row_deletion(self, number_of_rows):
+        self.add_score(number_of_rows)
+        Game.after_row_deletion(self, number_of_rows)
+
+    def add_score(self, number_of_lines_cleared):
+        """
+        Increases the score. This ought to be refined a little.
+        """
+        score_gain = (number_of_lines_cleared * 35) ** 2
+        self.score += score_gain
+        
+        if self.score >= self.next_level_threshold:
+            self.next_level_threshold += 50000
+            self.level += 1
+            logger.warn("Next level reached")
+
     
 if __name__ == '__main__':
     config = {'game_size': (10, 10),

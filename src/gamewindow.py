@@ -10,7 +10,7 @@ import threading
 from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
 from configscreen import ConfigScreen
-from gamemodel import Game
+from gamemodel import SingleplayerGame, MultiplayerGame
 
 from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
@@ -43,15 +43,6 @@ class GameWindow(pygame.Surface):
                            self.cell_height * game_dimensions[1])
         pygame.Surface.__init__(self, self.dimensions)
 
-        # The game model to be visualized by this class
-        # TODO: Remove duck prob parameter, separate part
-        # generator from game model.
-        self.game = Game(game_dimensions, config['duck_prob'])
-
-        # To get notified when a duck appears, add self to the list
-        # of duck observers. For quacking sounds only.
-        self.game.add_duck_observer(self)
-
         # A timer in milliseconds 
         self.clock = 0
         
@@ -66,8 +57,22 @@ class GameWindow(pygame.Surface):
         # if we're already in accelerated mode.
         self.downward_acceleration = False
 
-        # Network stuff for playing online
+        # The game model to be visualized by this class
+        # TODO: Remove duck prob parameter, separate part
+        # generator from game model.
         game_type = config['game_type']
+        if game_type == ConfigScreen.SINGLE:
+            self.game = SingleplayerGame(game_dimensions, config['duck_prob'])
+        elif game_type in (ConfigScreen.CREATE, ConfigScreen.JOIN):
+            self.game = MultiplayerGame(game_dimensions, config['duck_prob'])
+        else:
+            raise ValueError('Cannot create game of type "%s"' % game_type)
+
+        # To get notified when a duck appears, add self to the list
+        # of duck observers. For quacking sounds only.
+        self.game.add_duck_observer(self)
+
+        # Network stuff for playing online
         if game_type == ConfigScreen.SINGLE:       
             self.game.started = True
             self.listener = None
@@ -228,10 +233,14 @@ class GameWindow(pygame.Surface):
             self.game.proceed()
             complete_lines = self.game.find_complete_rows_indexes()
             if complete_lines:
-                #self.delete_sound.play()
+                # TODO: self.delete_sound.play() or sth like that ...
                 self.game.delete_rows(complete_lines)
-                
-            self.drop_interval = max(50, 500 - self.game.level * 25)
+            
+            # TODO: Boooo ... cut this out. 
+            # Need to make single/multiplayer subclasses of GameWindow
+            # instead of Game. 
+            acceleration = getattr(self.game, 'level', 0)
+            self.drop_interval = max(50, 500 - acceleration * 25)
         
         self.paint_cells()
 
