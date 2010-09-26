@@ -2,7 +2,7 @@
 import random
 import logging
 from collections import deque
-from part import Part, random_part_generator, DUCK_INDICES
+from part import Part, DUCK_INDICES
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -12,7 +12,7 @@ logger.addHandler(handler)
 
 class Game(object):
 
-    def __init__(self, dimensions, duck_probability=0):
+    def __init__(self, dimensions, part_generator):
         self.column_nr, self.row_nr = self.dimensions = dimensions
         self.cells = [0 for _ in range(self.column_nr) for _ in range(self.row_nr)]
         
@@ -29,7 +29,10 @@ class Game(object):
         
         self.init_direction_map()
 
-        self.setup_part_probabilities(duck_probability)
+        # A generator for yielding an inexhaustible 
+        # supply of new game parts
+        self.part_generator = part_generator
+
         self.init_piece_queue()
         
         self.duck_observers = []
@@ -42,8 +45,7 @@ class Game(object):
         Returns a mapping of the four basic directions
         N, E, S, W to corresponding differences in means
         of grid indexes.
-        """
-        
+        """        
         self.direction_map = dict(NORTH = -self.column_nr,
                                   EAST  = 1,
                                   SOUTH = self.column_nr,
@@ -203,9 +205,6 @@ class Game(object):
     @property
     def moving_piece_indexes(self):
         return self.moving_piece and self.moving_piece.get_indexes() or []
-
-    def setup_part_probabilities(self, duck_prob):
-        self.part_generator = random_part_generator(duck_prob)
 
     def get_next_piece(self):
         next = self.piece_queue.popleft()

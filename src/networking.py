@@ -7,8 +7,8 @@ import threading
 from collections import deque 
 
 # TODO: Put this into a config file
-GAME_SERVER = 'localhost:8090'
-#GAME_SERVER = 'entrisserver.appspot.com'
+#GAME_SERVER = 'localhost:8090'
+GAME_SERVER = 'entrisserver.appspot.com'
 
 class ServerNotAvailable(Exception):
     pass

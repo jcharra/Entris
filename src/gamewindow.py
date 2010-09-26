@@ -11,6 +11,7 @@ from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
 from configscreen import ConfigScreen
 from gamemodel import SingleplayerGame, MultiplayerGame
+from part import random_part_generator
 
 from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
@@ -57,14 +58,15 @@ class GameWindow(pygame.Surface):
         # if we're already in accelerated mode.
         self.downward_acceleration = False
 
-        # The game model to be visualized by this class
-        # TODO: Remove duck prob parameter, separate part
-        # generator from game model.
+        # The game model to be visualized by this class is created here.
+        # We need to pass a part generator with the appropriate probabilities.        
+        # as an argument.
+        part_generator = random_part_generator(config['duck_prob'])
         game_type = config['game_type']
         if game_type == ConfigScreen.SINGLE:
-            self.game = SingleplayerGame(game_dimensions, config['duck_prob'])
+            self.game = SingleplayerGame(game_dimensions, part_generator)
         elif game_type in (ConfigScreen.CREATE, ConfigScreen.JOIN):
-            self.game = MultiplayerGame(game_dimensions, config['duck_prob'])
+            self.game = MultiplayerGame(game_dimensions, part_generator)
         else:
             raise ValueError('Cannot create game of type "%s"' % game_type)
 
@@ -282,26 +284,21 @@ class GameWindow(pygame.Surface):
         """
         Game's over. Draw a layover telling the player about his failure.
         """
-        layover = pygame.Surface(self.dimensions)
-        layover_bg = (50, 50, 50)
-        layover.set_alpha(10)
-        layover.fill(layover_bg)
-        font = pygame.font.Font(None, 60)
-        text = font.render('GAME OVER', True, (255, 0, 0), layover_bg)
-        coords = self.dimensions[0]/2 - text.get_width()/2, self.dimensions[1]/2 - text.get_height()/2
-        layover.blit(text, coords)
-        self.blit(layover, (0, 0))
+        self.render_layover("GAME OVER")
 
     def render_winner_screen(self):
         """
         Player wins the multiplayer match!
         """
+        self.render_layover("YOU WIN")
+
+    def render_layover(self, msg_text):
         layover = pygame.Surface(self.dimensions)
         layover_bg = (50, 50, 50)
         layover.set_alpha(10)
         layover.fill(layover_bg)
         font = pygame.font.Font(None, 60)
-        text = font.render('YOU WIN', True, (255, 0, 0), layover_bg)
+        text = font.render(msg_text, True, (255, 0, 0), layover_bg)
         coords = self.dimensions[0]/2 - text.get_width()/2, self.dimensions[1]/2 - text.get_height()/2
         layover.blit(text, coords)
         self.blit(layover, (0, 0))
