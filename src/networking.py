@@ -7,8 +7,8 @@ import threading
 from collections import deque 
 
 # TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ServerNotAvailable(Exception):
     pass
@@ -39,10 +39,16 @@ class ServerEventListener(object):
     def __init__(self, game, online_game_id, host=GAME_SERVER, port=None):
         self.game = game
         self.game.add_line_observer(self)
+        
         self.host, self.port = host, port
         self.game_id = online_game_id
+        
         self.lines_to_send = deque()
         self.players = []
+        
+        # default, will be reset after first status update
+        self.game_size = 2
+        
         self.connection = None
         self.connect_to_game()
         self.abort = False
@@ -85,18 +91,21 @@ class ServerEventListener(object):
     def ask_for_start_permission(self):    
         self.connection.request("GET", "/status?game_id=%s" % self.game_id)
         status = self.connection.getresponse().read()
+        # TODO: Parse status report and put it into a GameStatus object
         return status.startswith("Started: True")
     
     def update_players_list(self):
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
             status_string = self.connection.getresponse().read()
-            status, players = status_string.split('|')[:2]        
+            # TODO: Parse status report and put it into a GameStatus object
+            status, players, size = status_string.split('|')[:3]        
             self.players = players.split(",")
+            self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
             print ("Status fetching for game %s failed. (%s)" 
                    % (self.game_id, err))
-            
+    
     def get_lines(self):
         params = urllib.urlencode({'game_id': self.game_id,
                                    'player_id': self.player_id})
@@ -135,6 +144,9 @@ class ServerEventListener(object):
     def notify(self, number_of_lines):
         print "Been notified of %s lines" % number_of_lines
         self.lines_to_send.append(number_of_lines)
+    
+    def get_number_of_players_missing(self):
+        return self.game_size - len(self.players)
         
     def connect_to_game(self):
         connection_str = self.host
