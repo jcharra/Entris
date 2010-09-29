@@ -12,6 +12,7 @@ from statuswindow import StatusWindow
 from configscreen import ConfigScreen
 from gamemodel import SingleplayerGame, MultiplayerGame
 from part import random_part_generator
+from sound import SoundManager
 
 from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
@@ -27,9 +28,6 @@ class GameWindow(pygame.Surface):
     """
     The game window is the visualization of the game instance it is
     responsible for, and controls how keyboard input is propagated to it.
-    
-    TODO: The class also handles music and game sounds. Better put this in 
-    a separate class maybe ...
     """
     
     def __init__(self, config):
@@ -70,10 +68,6 @@ class GameWindow(pygame.Surface):
         else:
             raise ValueError('Cannot create game of type "%s"' % game_type)
 
-        # To get notified when a duck appears, add self to the list
-        # of duck observers. For quacking sounds only.
-        self.game.add_duck_observer(self)
-
         # Network stuff for playing online
         if game_type == ConfigScreen.SINGLE:       
             self.game.started = True
@@ -104,17 +98,12 @@ class GameWindow(pygame.Surface):
      
         self.status_window = StatusWindow((200, self.get_height()), self.game)
     
-        self.sound_directory = '../sound/'
-        self.quack = pygame.mixer.Sound('%s/quack.ogg' % self.sound_directory)
-        self.delete_sound = None
-        self.play_random_music()
-        
-    def play_random_music(self):
-        variations = [var for var in os.listdir(self.sound_directory) if var.startswith('var')]
-        random_variation = "%s/%s" % (self.sound_directory, random.choice(variations))
-        pygame.mixer.music.load(random_variation)
-        pygame.mixer.music.play()
-    
+        # Plug the into game a sound manager to get notified 
+        # of sound-worthy events.
+        self.sound_manager = SoundManager()
+        self.game.add_observer(self.sound_manager)
+        self.sound_manager.play_background_music()
+
     def get_total_width(self):
         return self.get_width() + self.status_window.get_width()
           
@@ -133,9 +122,7 @@ class GameWindow(pygame.Surface):
         
         if key == K_ESCAPE:
             logger.error("Aborting game")
-            self.finished = True
-            if self.listener:
-                self.listener.abort = True
+            self.tear_down()
             
         # Game may be waiting to start.
         # Don't propagate keyboard input in that case.
@@ -148,6 +135,12 @@ class GameWindow(pygame.Surface):
                     
             elif key in ROTATION_MAP:
                 self.game.rotate_piece(ROTATION_MAP[key])
+    
+    def tear_down(self):
+        self.finished = True
+        if self.listener:
+            self.listener.abort = True
+        self.sound_manager.stop_background_music()
         
     def update_view(self, screen, passed_time):
         """
@@ -206,12 +199,6 @@ class GameWindow(pygame.Surface):
                 and len(self.listener.players) == 1):
                 print "%s %s %s" % (self.listener, self.game.started, self.listener.players)
                 return True                
-    
-    def duck_alert(self):
-        """
-        A duck hath appeared ... so quack!
-        """
-        self.quack.play()
     
     def render_game(self, passed_time):
         """

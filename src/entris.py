@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 pygame.init()
-pygame.mixer.init()
 
 import sys
 import os

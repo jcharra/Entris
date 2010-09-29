@@ -5,10 +5,11 @@ import sys
 import time
 import threading
 from collections import deque 
+from events import LinesDeletedEvent
 
 # TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ServerNotAvailable(Exception):
     pass
@@ -38,7 +39,7 @@ class ServerEventListener(object):
 
     def __init__(self, game, online_game_id, host=GAME_SERVER, port=None):
         self.game = game
-        self.game.add_line_observer(self)
+        self.game.add_observer(self)
         
         self.host, self.port = host, port
         self.game_id = online_game_id
@@ -141,9 +142,13 @@ class ServerEventListener(object):
         except (httplib.CannotSendRequest, Exception), exc:
             print "Errors while sendling lines to the server (%s)" % exc
 
-    def notify(self, number_of_lines):
-        print "Been notified of %s lines" % number_of_lines
-        self.lines_to_send.append(number_of_lines)
+    def notify(self, event):
+        if isinstance(event, LinesDeletedEvent):
+            print "Been notified of %s lines" % event.number_of_lines
+            self.lines_to_send.append(event.number_of_lines)
+        else:
+            # We don't care for other events
+            pass
     
     def get_number_of_players_missing(self):
         return self.game_size - len(self.players)

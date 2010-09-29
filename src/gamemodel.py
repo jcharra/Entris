@@ -3,6 +3,7 @@ import random
 import logging
 from collections import deque
 from part import Part, DUCK_INDICES
+from events import LinesDeletedEvent, QuackEvent
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -32,12 +33,12 @@ class Game(object):
         # A generator for yielding an inexhaustible 
         # supply of new game parts
         self.part_generator = part_generator
-
         self.init_piece_queue()
-        
-        self.duck_observers = []
-        self.line_observers = []
-                
+
+        # Observers will watch out for ducks appearing,
+        # lines being deleted etc. 
+        self.observers = []
+
         logger.debug("Initialized game")
     
     def init_direction_map(self):
@@ -52,6 +53,9 @@ class Game(object):
                                   WEST  = -1)
     
     def init_piece_queue(self):
+        """
+        This method can probably be removed after some refactoring
+        """
         self.piece_queue = deque([self.part_generator.next() for _ in range(10)])
         
     def proceed(self):
@@ -199,8 +203,8 @@ class Game(object):
         """
         Propagates the number of rows to registered line observers.
         """
-        for obs in self.line_observers:
-            obs.notify(number_of_lines=number_of_rows)
+        for obs in self.observers:
+            obs.notify(LinesDeletedEvent(number_of_rows))
 
     @property
     def moving_piece_indexes(self):
@@ -213,8 +217,8 @@ class Game(object):
     
     def insert_new_moving_piece(self, template):
         if template == DUCK_INDICES:
-            for obs in self.duck_observers:
-                obs.duck_alert()
+            for obs in self.observers:
+                obs.notify(QuackEvent())
 
         part = Part(template, self.column_nr)
         part.position_index = self.column_nr/2 - 1
@@ -222,12 +226,9 @@ class Game(object):
     
         self.moving_piece = part
             
-    def add_duck_observer(self, observer):
-        self.duck_observers.append(observer)
+    def add_observer(self, observer):
+        self.observers.append(observer)
 
-    def add_line_observer(self, observer):
-        self.line_observers.append(observer)
-    
     def __repr__(self):
         rows = []
         for i in range(self.row_nr):

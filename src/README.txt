@@ -46,7 +46,6 @@ Planned improvements
  - Change music with each level
  - Improve tests in each modules (esp. the server stuff should
    tell us when it failed)
- - Implement visual/sound effects for deletion of lines
  - Implement sound effect for rotating the piece/moving down
  
  
