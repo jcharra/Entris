@@ -76,7 +76,7 @@ class ConfigScreen(pygame.Surface):
     def __init__(self, width):
         height = len(self.MENU_ITEMS) * MENU_ITEM_HEIGHT
         pygame.Surface.__init__(self, (width, height))
-        self.selected_index = 3
+        self.selected_index = 4
         self.finished = False
     
     def handle_keypress(self, key):

@@ -19,7 +19,7 @@ class StatusWindow(pygame.Surface):
     
     def render_base(self):
         # background
-        self.fill((20, 20, 20))
+        self.fill((70, 70, 70))
         self.render_preview()
         
     def renderSinglePlayerScreen(self):
