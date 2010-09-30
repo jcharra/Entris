@@ -162,6 +162,7 @@ class GameWindow(pygame.Surface):
         Game may either be in state
         - over: display game over screen
         - won: display winner screen
+        - waiting for other players: display waiting screen
         - in progress: display game
         """
         
@@ -171,7 +172,9 @@ class GameWindow(pygame.Surface):
             self.render_game_over_screen()
         elif self.game_won:
             self.render_winner_screen()
-        else:            
+        elif not self.game.started:            
+            self.render_waiting_screen()
+        else:
             self.render_game(passed_time)
 
         # currently relevant for multiplayer games only
@@ -180,11 +183,32 @@ class GameWindow(pygame.Surface):
             self.listener.abort = True
             
     def render_status_window(self):
+        """
+        Render the status window depending on game type.
+        """
         if self.listener:
             self.status_window.renderMultiPlayerScreen(self.listener.game_id, 
                                                        self.listener.players)
         else:
             self.status_window.renderSinglePlayerScreen()
+    
+    def render_waiting_screen(self):
+        """
+        For multiplayer games: We might be waiting for other players.
+        """
+        self.fill((0, 0, 0))
+        font = pygame.font.Font(None, 24)
+        
+        missing = self.listener.get_number_of_players_missing()
+        plural_s = 's' if missing != 1 else ''
+        
+        text = font.render("Waiting for %s more player%s ..." % (missing, plural_s),
+                           True, (255, 0, 0), (0, 0, 0))
+        coords = (self.dimensions[0]/2 - text.get_width()/2, 
+                  self.dimensions[1]/2 - text.get_height()/2)
+        
+        self.blit(text, coords)
+                
     
     def check_victory(self):
         if not self.listener:
