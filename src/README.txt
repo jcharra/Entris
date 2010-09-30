@@ -31,6 +31,22 @@ Use the left/right arrow keys to modify the respective selection.
 Selecting START and press ENTER to play.
 
 
+Playing online
+--------------
+
+To create an online game, you have to provide the number of players
+it's supposed to wait for (including yourself). After that, Entris
+tries to establish a connection to the game server, which is currently
+hosted by Google App Engine (entrisserver.appspot.com).
+
+If the connection has been established correctly, you see the empty 
+game screen waiting for the game to start (i.e. you wait for the empty
+player slots to fill up). As soon as everybody has joined, the game starts.
+
+To join an online game, you need to be told the game ID by the one who 
+started the game. It is shown on the bottom right of the game window.
+
+
 Open bugs
 ---------
 
