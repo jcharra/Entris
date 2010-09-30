@@ -217,7 +217,7 @@ class GameWindow(pygame.Surface):
             return False
         else:
             # we are alive, the game already started and
-            # there is only one player left
+            # there is only one player left => victory, dude! :)
             if (not self.listener.abort 
                 and self.game.started 
                 and len(self.listener.players) == 1):
@@ -246,7 +246,6 @@ class GameWindow(pygame.Surface):
             self.game.proceed()
             complete_lines = self.game.find_complete_rows_indexes()
             if complete_lines:
-                # TODO: self.delete_sound.play() or sth like that ...
                 self.game.delete_rows(complete_lines)
             
             # TODO: Boooo ... cut this out. 

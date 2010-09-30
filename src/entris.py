@@ -65,7 +65,7 @@ if __name__ == '__main__':
                                            "Enter number of players", 
                                            input_type=GetInputScreen.NUMERIC,
                                            max_length=2,
-                                           constraint=lambda x: int(x) in range(2, 11))
+                                           constraint=lambda x: int(x) in range(2, 7))
             elif game_type == ConfigScreen.JOIN:
                 number_input_screen = GetInputScreen(CONFIG_SCREEN_DIMENSIONS, 
                                            "Enter game ID to join", 

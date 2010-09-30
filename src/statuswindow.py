@@ -16,6 +16,9 @@ class StatusWindow(pygame.Surface):
         
         self.font_color = (0, 200, 0)
         self.font = pygame.font.Font(None, 24)
+        
+        # Keep track of players that have been in the game
+        self.players_at_game_start = []
     
     def render_base(self):
         # background
@@ -31,6 +34,11 @@ class StatusWindow(pygame.Surface):
         self.render_base()
         self.render_game_id(game_id)
         self.render_players(players)
+        
+        if not self.players_at_game_start and self.game.started:
+            # Make a snapshot of the players that 
+            # are alive at the beginning
+            self.players_at_game_start = players
 
     def render_game_id(self, game_id):
         text_img = self.font.render("Game %s" % game_id, 1, (127, 127, 0))
@@ -67,11 +75,17 @@ class StatusWindow(pygame.Surface):
         text_pos.centery = 200
         self.blit(text_img, text_pos)
         
-        for idx, player in enumerate(players):
-            t_img = self.font.render(str(player), 1, self.font_color)
+        player_list_font = pygame.font.Font(None, 24)
+        # Iterate over all players that started the game.
+        # If the game has not started, this list will be empty,
+        # so use the list of players that we received as argument.
+        for idx, player in enumerate(self.players_at_game_start or players):
+            # Paint deceased players gray ... others coloured
+            color = self.font_color if player in players else (50, 50, 50)
+            t_img = player_list_font.render(str(player), 1, color)
             t_pos = t_img.get_rect()
             t_pos.centerx = self.get_rect().centerx
-            t_pos.centery = 230 + idx * 30
+            t_pos.centery = 230 + idx * 24
             self.blit(t_img, t_pos)
         
     def render_preview(self):
