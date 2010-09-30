@@ -12,7 +12,7 @@ class SoundManager(object):
     def __init__(self):
         self.quack = pygame.mixer.Sound('%s/quack.ogg' % SOUND_DIR)
         # TODO: Create and use a DIFFERENT sound
-        self.delete_sound = pygame.mixer.Sound('%s/quack.ogg' % SOUND_DIR)
+        #self.delete_sound = pygame.mixer.Sound('%s/quack.ogg' % SOUND_DIR)
     
     def play_background_music(self):
         variations = ["%s/%s" % (SOUND_DIR, var) 
@@ -37,6 +37,7 @@ class SoundManager(object):
             # A duck hath appeared ... so quack!
             self.quack.play()
         elif isinstance(event_type, LinesDeletedEvent):
-            self.delete_sound.play()
+            #self.delete_sound.play()
+            pass
         else:
             raise KeyError('No behaviour defined for event type %s' % type(event))
