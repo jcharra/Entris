@@ -92,14 +92,14 @@ class StatusWindow(pygame.Surface):
         text_img = self.font.render("Next", 1, self.font_color)
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 50
+        text_pos.centery = 20
         self.blit(text_img, text_pos)
 
         next_piece = self.game.piece_queue[0]
         next_piece_width = len(next_piece[0])
         
         x_offset = self.block_size * (5 - next_piece_width/2)
-        y_offset = 100
+        y_offset = 50
         
         for row_index, row in enumerate(next_piece):
             for idx, color in enumerate(row):
