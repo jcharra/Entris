@@ -56,6 +56,10 @@ class GameWindow(pygame.Surface):
         # if we're already in accelerated mode.
         self.downward_acceleration = False
 
+        # In case of multiplayer games, this can become True.
+        # Maybe I'll define a "winning state" for single player mode, too.
+        self.game_won = False
+
         # The game model to be visualized by this class is created here.
         # We need to pass a part generator with the appropriate probabilities.        
         # as an argument.
@@ -89,12 +93,9 @@ class GameWindow(pygame.Surface):
             # Connect the game instance to the game server by adding 
             # a server listener to it. 
             self.listener = ServerEventListener(self.game,
-                                                online_game_id=game_id)
+                                                online_game_id=game_id,
+                                                screen_name=config['screen_name'])
             self.listener.listen()
-     
-        # In case of multiplayer games, this can become True.
-        # Maybe I'll define a "winning state" for single player mode, too.
-        self.game_won = False
      
         self.status_window = StatusWindow((200, self.get_height()), self.game)
     

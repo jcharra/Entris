@@ -60,6 +60,18 @@ if __name__ == '__main__':
             # allowed to start playing.
             start_ok = False
             
+            # Get player name
+            player_name_screen = GetInputScreen(CONFIG_SCREEN_DIMENSIONS, 
+                           "Enter your screen name", 
+                           input_type=GetInputScreen.ALPHANUMERIC,
+                           max_length=10)
+            player_name_screen.show(main_screen)
+            
+            screen_name = player_name_screen.get_input() or ''
+            config['screen_name'] = screen_name
+            
+            # Get additional information, depending on whether we
+            # join or create the online game.    
             if game_type == ConfigScreen.CREATE:
                 number_input_screen = GetInputScreen(CONFIG_SCREEN_DIMENSIONS, 
                                            "Enter number of players", 

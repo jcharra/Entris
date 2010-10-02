@@ -8,8 +8,8 @@ from collections import deque
 from events import LinesDeletedEvent
 
 # TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ServerNotAvailable(Exception):
     pass
@@ -35,14 +35,18 @@ class ServerEventListener(object):
     As long as its game is 'alive', the synchronisation thread
     of the ServerEventListener keeps asking the server for info
     and sending info in regular intervals of 1 second.
+    
+    Constructor expects a 'screen name' for the player to send
+    to the server.
     """
 
-    def __init__(self, game, online_game_id, host=GAME_SERVER, port=None):
+    def __init__(self, game, online_game_id, screen_name, host=GAME_SERVER):
         self.game = game
         self.game.add_observer(self)
         
-        self.host, self.port = host, port
+        self.host = host
         self.game_id = online_game_id
+        self.screen_name = screen_name
         
         self.lines_to_send = deque()
         self.players = []
@@ -102,6 +106,7 @@ class ServerEventListener(object):
             # TODO: Parse status report and put it into a GameStatus object
             status, players, size = status_string.split('|')[:3]        
             self.players = players.split(",")
+            print "Status string: %s, players: %s" % (status_string, self.players)
             self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
             print ("Status fetching for game %s failed. (%s)" 
@@ -155,14 +160,13 @@ class ServerEventListener(object):
         
     def connect_to_game(self):
         connection_str = self.host
-        if self.port:
-            connection_str += ":%s" % self.port
 
         attempts = 0
         while attempts < 10:
             try:
                 self.connection = httplib.HTTPConnection(connection_str)
-                self.connection.request("GET", "/register?game_id=%s" % self.game_id)
+                self.connection.request("GET", "/register?game_id=%s&screen_name=%s" 
+                                        % (self.game_id, self.screen_name))
                 self.player_id = self.connection.getresponse().read()
 
                 return
