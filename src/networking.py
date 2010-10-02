@@ -106,7 +106,6 @@ class ServerEventListener(object):
             # TODO: Parse status report and put it into a GameStatus object
             status, players, size = status_string.split('|')[:3]        
             self.players = players.split(",")
-            print "Status string: %s, players: %s" % (status_string, self.players)
             self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
             print ("Status fetching for game %s failed. (%s)" 
