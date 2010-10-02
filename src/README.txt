@@ -6,6 +6,12 @@ Written in August/September 2010 by Johannes Charra using
 Python2.6 and consequently excessive duck typing (pun intended).
 
 
+License
+-------
+
+Entris is published under the GNU General Public License.
+
+
 Controls
 --------
 
@@ -45,6 +51,9 @@ player slots to fill up). As soon as everybody has joined, the game starts.
 
 To join an online game, you need to be told the game ID by the one who 
 started the game. It is shown on the bottom right of the game window.
+
+For both game creation and joining you can optionally specify a screen
+name to be displayed to the other users.
 
 
 Open bugs
