@@ -6,7 +6,7 @@ import os
 import random
 from events import QuackEvent, LinesDeletedEvent
 
-SOUND_DIR = '../sound'
+SOUND_DIR = 'sound'
 
 class SoundManager(object):
     def __init__(self):
