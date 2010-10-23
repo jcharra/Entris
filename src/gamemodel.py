@@ -38,9 +38,7 @@ class Game(object):
         # Observers will watch out for ducks appearing,
         # lines being deleted etc. 
         self.observers = []
-
-        logger.debug("Initialized game")
-    
+        
     def init_direction_map(self):
         """
         Returns a mapping of the four basic directions
