@@ -122,7 +122,7 @@ class GameWindow(pygame.Surface):
         """
         
         if key == K_ESCAPE:
-            logger.error("Aborting game")
+            logger.info("Aborting game")
             self.tear_down()
             
         # Game may be waiting to start.
