@@ -15,19 +15,9 @@ class SoundManager(object):
         #self.delete_sound = pygame.mixer.Sound('%s/quack.ogg' % SOUND_DIR)
     
     def play_background_music(self):
-        variations = ["%s/%s" % (SOUND_DIR, var) 
-                      for var in os.listdir(SOUND_DIR) 
-                      if var.startswith('var')]
-        random.shuffle(variations)
-        
-        pygame.mixer.music.load(variations[0])
+        music_file = os.path.join(SOUND_DIR, "kraut.mid")
+        pygame.mixer.music.load(music_file)
         pygame.mixer.music.play()
-
-        # put the rest into the playlist ... that should suffice :)
-        # FIXME: Doesn't work as expected. Just one piece played,
-        # cut off right before the last note.
-        for var in variations[1:]:
-            pygame.mixer.music.queue(var)
         
     def stop_background_music(self):
         pygame.mixer.music.fadeout(100)
@@ -40,4 +30,4 @@ class SoundManager(object):
             #self.delete_sound.play()
             pass
         else:
-            raise KeyError('No behaviour defined for event type %s' % type(event))
+            raise KeyError('No behaviour defined for event type %s' % event_type)
