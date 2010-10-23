@@ -15,7 +15,7 @@ class StatusWindow(pygame.Surface):
         self.block_size = self.get_width()/10
         
         self.font_color = (0, 200, 0)
-        self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.Font('jack_type.ttf', 18)
         
         # Keep track of players that have been in the game
         self.players_at_game_start = []
@@ -75,7 +75,7 @@ class StatusWindow(pygame.Surface):
         text_pos.centery = 200
         self.blit(text_img, text_pos)
         
-        player_list_font = pygame.font.Font(None, 24)
+        player_list_font = pygame.font.Font('jack_type.ttf', 18)
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
         # so use the list of players that we received as argument.

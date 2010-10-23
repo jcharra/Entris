@@ -37,7 +37,7 @@ class MenuItem(pygame.Surface):
         if self.values_dict:
             text += " : %s" % self.values[self.current_index]
         
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font('jack_type.ttf', 18)
         text_img = font.render(text, 1, (0, 200, 0))
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
@@ -60,7 +60,7 @@ class ConfigScreen(pygame.Surface):
                                     "25 x 33": (25, 33), 
                                     "30 x 40": (30, 40)})
     
-    DUCK_PROBABILITY_SELECTION = MenuItem("Duck probability", dict([("%i%%" % i, float(i)/100) 
+    DUCK_PROBABILITY_SELECTION = MenuItem("Duck probability", dict([("%.2f" % (i/100.0), float(i)/100) 
                                                                     for i in range(11)]))
     
     NEW_GAME_SELECTION = MenuItem("Game type", {"Single player": SINGLE, 
@@ -202,7 +202,7 @@ class GetInputScreen(pygame.Surface):
     def render(self):
         self.fill((0, 0, 0, 1))
                 
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font('jack_type.ttf', 18)
         text_img = font.render(self.text, 1, (0, 200, 0))
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
