@@ -307,7 +307,7 @@ class GameWindow(pygame.Surface):
         layover_bg = (50, 50, 50)
         layover.set_alpha(10)
         layover.fill(layover_bg)
-        font = pygame.font.Font(None, 60)
+        font = pygame.font.Font("jack_type.ttf", 48)
         text = font.render(msg_text, True, (255, 0, 0), layover_bg)
         coords = self.dimensions[0]/2 - text.get_width()/2, self.dimensions[1]/2 - text.get_height()/2
         layover.blit(text, coords)
