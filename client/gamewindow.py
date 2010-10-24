@@ -197,7 +197,7 @@ class GameWindow(pygame.Surface):
         For multiplayer games: We might be waiting for other players.
         """
         self.fill((0, 0, 0))
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font("jack_type.ttf", 14)
         
         missing = self.listener.get_number_of_players_missing()
         plural_s = 's' if missing != 1 else ''
@@ -248,9 +248,8 @@ class GameWindow(pygame.Surface):
             if complete_lines:
                 self.game.delete_rows(complete_lines)
             
-            # TODO: Boooo ... cut this out. 
-            # Need to make single/multiplayer subclasses of GameWindow
-            # instead of Game. 
+            # TODO: Need to make single/multiplayer subclasses
+            # of GameWindow instead of Game. 
             acceleration = getattr(self.game, 'level', 0)
             self.drop_interval = max(50, 500 - acceleration * 25)
         
