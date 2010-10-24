@@ -12,11 +12,11 @@ import py2exe
 ### Variables to edit ###
 #########################
 
-script = "entris.py"   # Starting .py or .pyw script
-dest_file = "Entris"  # Final name of .exe file
-dest_folder = "win"   # Final folder to contain the executable, data files, etc.
-icon_file = ""       # Icon file. Leave blank for the pygame icon.
-extra_data = ["sound", "jack_type.ttf"]              # Extra data to copy to the final folder
+script = "entris.py"        # Starting .py or .pyw script
+dest_file = "Entris"        # Final name of .exe file
+dest_folder = "InnoSetup"   # Final folder to contain the executable, data files, etc.
+icon_file = ""              # Icon file. Leave blank for the pygame icon.
+extra_data = ["sound", "jack_type.ttf", "setup.iss"]  # Extra data to copy to the final folder
 extra_modules = []           # Extra modules to be included in the .exe (leave empty if no extra modules)
 dll_excludes = []            # excluded dlls ["w9xpopen.exe", "msvcr71.dll"]
 
@@ -27,7 +27,7 @@ lib_excludes = ["Tkinter", "tcl", "OpenGL", "Numeric", "numpy", "wxPython", "pyg
 copyright = "Copyright (C) 2010"
 author = "Johannes Charra"
 company = None
-version = "1.04"
+version = "1.03"
 
 ###################################################################
 ### Do not edit below here, unless you just want to experiment. ###
