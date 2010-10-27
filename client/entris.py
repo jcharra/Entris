@@ -13,8 +13,8 @@ from configscreen import ConfigScreen, GetInputScreen
 
 CONFIG_SCREEN_DIMENSIONS = (400, 300)
         
-def play_game(main_screen, config_screen):
-    window = GameWindow(config_screen)
+def play_game(main_screen, config):
+    window = GameWindow(config)
     
     # The true screen dimensions are available only after
     # the game window's dimensions have been "rounded" properly.
