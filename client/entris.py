@@ -42,6 +42,7 @@ def play_game(main_screen, config):
 
 if __name__ == '__main__':
     config_screen = ConfigScreen(CONFIG_SCREEN_DIMENSIONS[0])
+    pygame.display.set_caption('Entris')
     
     while True:
         pygame.display.set_mode(CONFIG_SCREEN_DIMENSIONS)
