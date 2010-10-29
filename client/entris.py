@@ -3,12 +3,8 @@ from pygame.locals import *
 pygame.init()
 
 import sys
-import os
-import random
 
-from gamemodel import Game
 from gamewindow import GameWindow
-from statuswindow import StatusWindow
 from configscreen import ConfigScreen, GetInputScreen
 
 CONFIG_SCREEN_DIMENSIONS = (400, 300)

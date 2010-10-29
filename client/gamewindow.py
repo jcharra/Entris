@@ -1,11 +1,5 @@
 import pygame
-import math
 import logging
-import os
-import sys
-import time
-import random
-import threading
 
 from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
