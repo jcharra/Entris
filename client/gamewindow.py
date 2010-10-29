@@ -9,6 +9,7 @@ import threading
 
 from networking import ServerEventListener, create_new_game
 from statuswindow import StatusWindow
+from messagelayover import TransparentLayover
 from configscreen import ConfigScreen
 from gamemodel import SingleplayerGame, MultiplayerGame
 from part import random_part_generator
@@ -96,6 +97,8 @@ class GameWindow(pygame.Surface):
             self.listener.listen()
      
         self.status_window = StatusWindow((200, self.get_height()), self.game)
+    
+        self.message_layover = TransparentLayover(self)
     
         # Plug the into game a sound manager to get notified 
         # of sound-worthy events.
@@ -291,25 +294,13 @@ class GameWindow(pygame.Surface):
         """
         Game's over. Draw a layover telling the player about his failure.
         """
-        self.render_layover("GAME OVER")
+        self.message_layover.render_message("GAME OVER", fontsize=48, fade=True)
 
     def render_winner_screen(self):
         """
         Player wins the multiplayer match!
         """
-        self.render_layover("YOU WIN")
-
-    def render_layover(self, msg_text):
-        layover = pygame.Surface(self.dimensions)
-        layover_bg = (50, 50, 50)
-        layover.set_alpha(10)
-        layover.fill(layover_bg)
-        font = pygame.font.Font("jack_type.ttf", 48)
-        text = font.render(msg_text, True, (255, 0, 0), layover_bg)
-        coords = self.dimensions[0]/2 - text.get_width()/2, self.dimensions[1]/2 - text.get_height()/2
-        layover.blit(text, coords)
-        self.blit(layover, (0, 0))
-
+        self.message_layover.render_message("YOU WIN", fontsize=48, fade=True)
         
 if __name__ == '__main__':
     from gamemodel import Game
