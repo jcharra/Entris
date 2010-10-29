@@ -83,10 +83,8 @@ class GameWindow(pygame.Surface):
             
             if game_type == ConfigScreen.CREATE:
                 game_id = create_new_game(size=config['game_info'])
-                logger.info('Created game no. %s with size %s' % (game_id, config['game_info']))
             elif game_type == ConfigScreen.JOIN:
                 game_id = config['game_info']
-                logger.info('Joining game no. %s' % game_id)
             else:
                 raise KeyError("Unknown game type: %s" % game_type)
             
