@@ -34,12 +34,12 @@ class GameWindow(pygame.Surface):
         dimensions = config['screen_size']
         game_dimensions = config['game_size']
         
-        # TODO: This sucks ... dimensions are adjusted to result in a 
-        # rounded cell width/height. 
-        self.cell_width = math.ceil(dimensions[0]/float(game_dimensions[0]))
-        self.cell_height = math.ceil(dimensions[1]/float(game_dimensions[1]))
-        self.dimensions = (self.cell_width * game_dimensions[0],
-                           self.cell_height * game_dimensions[1])
+        self.dimensions = dimensions
+        
+        # cell width and height are floats
+        self.cell_width = dimensions[0]/float(game_dimensions[0])
+        self.cell_height = dimensions[1]/float(game_dimensions[1])
+        
         pygame.Surface.__init__(self, self.dimensions)
 
         # A timer in milliseconds 
@@ -272,8 +272,8 @@ class GameWindow(pygame.Surface):
         """
         
         top, left = divmod(index, self.game.column_nr)
-        top *= self.cell_height
-        left *= self.cell_width
+        top = top * self.cell_height
+        left = left * self.cell_width
         rect = pygame.Rect((left, top), (self.cell_width, self.cell_height))
         self.fill(color, rect)
         self.fill(self.darken(color), pygame.Rect((left, top), (self.cell_width, 2)))

@@ -16,12 +16,8 @@ CONFIG_SCREEN_DIMENSIONS = (400, 300)
 def play_game(main_screen, config):
     window = GameWindow(config)
     
-    # The true screen dimensions are available only after
-    # the game window's dimensions have been "rounded" properly.
-    true_x = window.get_total_width()
-    true_y = window.get_height()
-    
-    pygame.display.set_mode((true_x, true_y))
+    pygame.display.set_mode((window.get_total_width(),
+                             window.get_height()))
     
     clock = pygame.time.Clock()
     
