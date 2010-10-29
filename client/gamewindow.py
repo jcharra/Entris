@@ -197,19 +197,11 @@ class GameWindow(pygame.Surface):
         """
         For multiplayer games: We might be waiting for other players.
         """
-        self.fill((0, 0, 0))
-        font = pygame.font.Font("jack_type.ttf", 14)
         
         missing = self.listener.get_number_of_players_missing()
         plural_s = 's' if missing != 1 else ''
-        
-        text = font.render("Waiting for %s more player%s ..." % (missing, plural_s),
-                           True, (255, 0, 0), (0, 0, 0))
-        coords = (self.dimensions[0]/2 - text.get_width()/2, 
-                  self.dimensions[1]/2 - text.get_height()/2)
-        
-        self.blit(text, coords)
-                
+        text = "Waiting for %s more player%s ..." % (missing, plural_s)
+        self.message_layover.render_message(text, fontsize=14, fade=False)        
     
     def check_victory(self):
         if not self.listener:
