@@ -1,6 +1,6 @@
 
-import random
 import logging
+import random
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator
 from events import LinesDeletedEvent, QuackEvent
@@ -23,7 +23,6 @@ def create_game(config):
     on the parameters in the config.
     """
     
-    # The game model to be visualized by this class is created here.
     # We need to pass a part generator with the appropriate probabilities.        
     # as an argument.
     part_generator = random_part_generator(config['duck_prob'])
@@ -32,16 +31,31 @@ def create_game(config):
     
     if game_type == ConfigScreen.SINGLE:
         game = SingleplayerGame(game_dimensions, part_generator)
-    elif game_type in (ConfigScreen.CREATE, ConfigScreen.JOIN):
-        game = MultiplayerGame(game_dimensions, part_generator)
-    else:
-        raise ValueError('Cannot create game of type "%s"' % game_type)
-
-    # Network stuff for playing online
-    if game_type == ConfigScreen.SINGLE:       
         game.started = True
         game.listener = None
     else:
+        if game_type == ConfigScreen.CREATE:
+            game_id = create_new_game(size=config['game_info'])
+        elif game_type == ConfigScreen.JOIN:
+            game_id = config['game_info']
+        else:
+            raise KeyError("Unknown game type: %s" % game_type)
+
+        game = MultiplayerGame(game_dimensions, part_generator)
+
+        # Game will be inactive until it gets the start
+        # signal from the server.
+        game.started = False
+        
+        
+        # Connect the game instance to the game server by adding 
+        # a server listener to it. 
+        game.listener = ServerEventListener(game,
+                                       online_game_id=game_id,
+                                       screen_name=config['screen_name'])
+        game.listener.listen()
+
+
         # Game will be inactive until it gets the start
         # signal from the server.
         game.started = False
@@ -59,7 +73,7 @@ def create_game(config):
                                        online_game_id=game_id,
                                        screen_name=config['screen_name'])
         game.listener.listen()
-
+   
     return game
 
 class Game(object):
