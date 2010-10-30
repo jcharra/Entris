@@ -4,32 +4,35 @@ pygame.init()
 
 import sys
 
+from gamemodel import create_game
 from gamewindow import GameWindow
 from configscreen import ConfigScreen, GetInputScreen
 
 CONFIG_SCREEN_DIMENSIONS = (400, 300)
         
 def play_game(main_screen, config):
-    window = GameWindow(config)
+    game = create_game(config)
+    game_window = GameWindow(config, game)
     
-    pygame.display.set_mode((window.get_total_width(),
-                             window.get_height()))
+    pygame.display.set_mode((game_window.get_total_width(),
+                             game_window.get_height()))
     
     clock = pygame.time.Clock()
     
-    while not window.finished:
+    while not game.aborted:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 sys.exit()
                 
             if event.type == pygame.KEYDOWN:
-                window.handle_keypress(event.key)
+                game.handle_keypress(event.key)
             elif event.type == pygame.KEYUP:
-                window.handle_keyrelease(event.key)
+                game.handle_keyrelease(event.key)
         
         passed_time = clock.tick(30)
                 
-        window.update_view(main_screen, passed_time)
+        game.proceed(passed_time)
+        game_window.update_view(main_screen)
         pygame.display.update()
 
 if __name__ == '__main__':

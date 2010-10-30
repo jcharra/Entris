@@ -2,14 +2,65 @@
 import random
 import logging
 from collections import deque
-from part import Part, DUCK_INDICES
+from part import Part, DUCK_INDICES, random_part_generator
 from events import LinesDeletedEvent, QuackEvent
+from configscreen import ConfigScreen
+from networking import ServerEventListener, create_new_game
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
+
+from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
+KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
+ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE'}
+
+def create_game(config):
+    """
+    Factory method to create a game based 
+    on the parameters in the config.
+    """
+    
+    # The game model to be visualized by this class is created here.
+    # We need to pass a part generator with the appropriate probabilities.        
+    # as an argument.
+    part_generator = random_part_generator(config['duck_prob'])
+    game_type = config['game_type']
+    game_dimensions = config['game_size']
+    
+    if game_type == ConfigScreen.SINGLE:
+        game = SingleplayerGame(game_dimensions, part_generator)
+    elif game_type in (ConfigScreen.CREATE, ConfigScreen.JOIN):
+        game = MultiplayerGame(game_dimensions, part_generator)
+    else:
+        raise ValueError('Cannot create game of type "%s"' % game_type)
+
+    # Network stuff for playing online
+    if game_type == ConfigScreen.SINGLE:       
+        game.started = True
+        game.listener = None
+    else:
+        # Game will be inactive until it gets the start
+        # signal from the server.
+        game.started = False
+        
+        if game_type == ConfigScreen.CREATE:
+            game_id = create_new_game(size=config['game_info'])
+        elif game_type == ConfigScreen.JOIN:
+            game_id = config['game_info']
+        else:
+            raise KeyError("Unknown game type: %s" % game_type)
+        
+        # Connect the game instance to the game server by adding 
+        # a server listener to it. 
+        game.listener = ServerEventListener(game,
+                                       online_game_id=game_id,
+                                       screen_name=config['screen_name'])
+        game.listener.listen()
+
+    return game
 
 class Game(object):
 
@@ -21,6 +72,7 @@ class Game(object):
         self.moving_piece = None
         
         self.gameover = False
+        self.aborted = False
         
         # Initially the game waits for a start signal
         # from a controlling object (either the GameWindow
@@ -39,6 +91,16 @@ class Game(object):
         # lines being deleted etc. 
         self.observers = []
         
+        self.drop_interval = 500
+        
+        # Since the downward acceleration by the player is meant to be "continuous"
+        # (instead of having to press the "down" key again) we have to remember
+        # if we're already in accelerated mode.
+        self.downward_accelerated = False
+        
+        self.clock = 0
+        self.listener = None
+        
     def init_direction_map(self):
         """
         Returns a mapping of the four basic directions
@@ -56,7 +118,53 @@ class Game(object):
         """
         self.piece_queue = deque([self.part_generator.next() for _ in range(10)])
         
-    def proceed(self):
+    def proceed(self, passed_time):
+        if not self.started:
+            return
+        
+        self.clock += passed_time
+        threshold_reached, self.clock = divmod(self.clock, self.drop_interval)
+
+        if self.downward_accelerated:  
+            self.move_piece("SOUTH")
+            
+        if threshold_reached:
+            self.take_one_step()
+            complete_lines = self.find_complete_rows_indexes()
+            if complete_lines:
+                self.delete_rows(complete_lines)
+            
+            acceleration = getattr(self, 'level', 0)
+            self.drop_interval = max(50, 500 - acceleration * 25)
+
+    def handle_keypress(self, key):
+        if key == K_ESCAPE:
+            self.tear_down()
+            
+        # Game may be waiting to start.
+        # Don't propagate keyboard input in that case.
+        if self.started:
+            if key in KEYMAP:
+                self.move_piece(KEYMAP[key])
+                
+                if key == K_DOWN:
+                    self.downward_accelerated = True
+                    
+            elif key in ROTATION_MAP:
+                self.rotate_piece(ROTATION_MAP[key])
+    
+    def handle_keyrelease(self, key):
+        """
+        User released a key - possibly the "down" key. So stop downward-
+        accelerating the active piece.
+        """
+        
+        self.downward_accelerated = False
+      
+    def tear_down(self):
+        self.aborted = True
+          
+    def take_one_step(self):
         """
         Takes one step in time.
         
@@ -81,7 +189,20 @@ class Game(object):
             if any([self.cells[i] for i in self.moving_piece.get_indexes()]):
                 self.gameover = True
             
-        
+    def check_victory(self):
+        if not self.listener:
+            # There may be a single player "victory" one day ... 
+            # the conditions for that should be defined here.
+            return False
+        else:
+            # we are alive, the game already started and
+            # there is only one player left => victory, dude! :)
+            if (not self.listener.abort 
+                and self.started 
+                and len(self.listener.players) == 1):
+                print "%s %s %s" % (self.listener, self.started, self.listener.players)
+                return True                
+       
     def rotate_piece(self, rotation_key, steps=1):
         """
         Tries to rotate the current piece
@@ -241,12 +362,12 @@ class MultiplayerGame(Game):
         # Penalties can be received from other players
         self.penalties = deque()
 
-    def proceed(self):
+    def proceed(self, passed_time):
         if not self.moving_piece and self.penalties:
             # Time to insert penalty lines, if any
             self.insert_penalties()
 
-        Game.proceed(self)
+        Game.proceed(self, passed_time)
     
     def regurgitate(self, number_of_lines):
         """
