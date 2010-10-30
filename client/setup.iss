@@ -1,6 +1,6 @@
 [Setup]
 AppName=Entris
-AppVersion=1.03
+AppVersion=1.04
 DefaultDirName={pf}\Entris
 DefaultGroupName=Entris
 UninstallDisplayIcon={app}\Entris.exe
@@ -12,7 +12,7 @@ OutputDir=userdocs:Inno Setup Examples Output
 Source: "Entris.exe"; DestDir: "{app}"
 Source: "jack_type.ttf"; DestDir: "{app}"
 Source: "w9xpopen.exe"; DestDir: "{app}";
-Source: "README.txt"; DestDir: "{app}";
+Source: "README.txt"; DestDir: "{app}"; Flags: isreadme
 Source: "sound\kraut.mid"; DestDir: "{app}\sound";
 Source: "sound\quack.ogg"; DestDir: "{app}\sound";
 
