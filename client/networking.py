@@ -175,30 +175,6 @@ class ServerEventListener(object):
                 attempts += 1
                 
         raise ServerNotAvailable("Could not register at %s" % connection_str)
-        
-if __name__ == '__main__':
-    import server
-
-    server_thread = threading.Thread(target=server.start_server)
-    server_thread.start()
-    time.sleep(1)
-    
-    from gamemodel import Game
-    game1 = Game((10, 10), 0.1)
-    game2 = Game((10, 10), 0.1)
-    
-    sel1 = ServerEventListener(game1, "0.0.0.0", 8080)
-    sel1.listen()
-    
-    sel2 = ServerEventListener(game2, "0.0.0.0", 8080)
-    sel2.listen()
-    
-    game1.delete_rows([0])
-    
-    time.sleep(4)
-    game2.proceed()
-    game2.proceed()
-    assert any(game2.cells[-10:]), "Nothing showed up in other game: \n%s" % game2
     
     
     
