@@ -131,26 +131,7 @@ class Game(object):
         This method can probably be removed after some refactoring
         """
         self.piece_queue = deque([self.part_generator.next() for _ in range(10)])
-        
-    def proceed(self, passed_time):
-        if not self.started:
-            return
-        
-        self.clock += passed_time
-        threshold_reached, self.clock = divmod(self.clock, self.drop_interval)
-
-        if self.downward_accelerated:  
-            self.move_piece("SOUTH")
-            
-        if threshold_reached:
-            self.take_one_step()
-            complete_lines = self.find_complete_rows_indexes()
-            if complete_lines:
-                self.delete_rows(complete_lines)
-            
-            acceleration = getattr(self, 'level', 0)
-            self.drop_interval = max(50, 500 - acceleration * 25)
-
+    
     def handle_keypress(self, key):
         if key == K_ESCAPE:
             self.tear_down()
@@ -179,7 +160,31 @@ class Game(object):
         self.aborted = True
         if self.listener:
             self.listener.abort = True
-          
+        
+    def proceed(self, passed_time):
+        """
+        Lets the given amount of time 'pass'. If the accumulated time
+        is greater than the drop interval (=the game speed), reset the 
+        clock and move the active piece downwards.
+        """
+        if not self.started:
+            return
+        
+        self.clock += passed_time
+        threshold_reached, self.clock = divmod(self.clock, self.drop_interval)
+
+        if self.downward_accelerated:  
+            self.move_piece("SOUTH")
+            
+        if threshold_reached:
+            self.take_one_step()
+            complete_lines = self.find_complete_rows_indexes()
+            if complete_lines:
+                self.delete_rows(complete_lines)
+            
+            acceleration = getattr(self, 'level', 0)
+            self.drop_interval = max(50, 500 - acceleration * 25)
+
     def take_one_step(self):
         """
         Takes one step in time.
