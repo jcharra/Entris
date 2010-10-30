@@ -177,6 +177,8 @@ class Game(object):
       
     def tear_down(self):
         self.aborted = True
+        if self.listener:
+            self.listener.abort = True
           
     def take_one_step(self):
         """

@@ -39,13 +39,6 @@ class GameWindow(pygame.Surface):
         # The threshold (in milliseconds) indicating that the next step is due
         self.drop_interval = 500
         
-        # Game over or interrupted
-        self.finished = False
-        
-        # In case of multiplayer games, this can become True.
-        # Maybe I'll define a "winning state" for single player mode, too.
-        self.game_won = False
-
         self.status_window = StatusWindow((200, self.get_height()), self.game_model)
     
         self.message_layover = TransparentLayover(self)
@@ -60,9 +53,6 @@ class GameWindow(pygame.Surface):
         return self.get_width() + self.status_window.get_width()
           
     def tear_down(self):
-        self.finished = True
-        if self.game_model.listener:
-            self.game_model.listener.abort = True
         self.sound_manager.stop_background_music()
         
     def update_view(self, screen):
@@ -90,17 +80,12 @@ class GameWindow(pygame.Surface):
             if self.game_model.listener:
                 self.game_model.listener.abort = True
             self.render_game_over_screen()
-        elif self.game_won:
+        elif self.game_model.check_victory():
             self.render_winner_screen()
         elif not self.game_model.started:            
             self.render_waiting_screen()
         else:
             self.render_game()
-
-        # currently relevant for multiplayer games only
-        if self.game_model.check_victory():
-            self.game_won = True
-            self.game_model.listener.abort = True
             
     def render_status_window(self):
         """
