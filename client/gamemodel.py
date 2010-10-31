@@ -47,33 +47,13 @@ def create_game(config):
         # signal from the server.
         game.started = False
         
-        
         # Connect the game instance to the game server by adding 
         # a server listener to it. 
         game.listener = ServerEventListener(game,
-                                       online_game_id=game_id,
-                                       screen_name=config['screen_name'])
+                                            online_game_id=game_id,
+                                            screen_name=config['screen_name'])
         game.listener.listen()
 
-
-        # Game will be inactive until it gets the start
-        # signal from the server.
-        game.started = False
-        
-        if game_type == ConfigScreen.CREATE:
-            game_id = create_new_game(size=config['game_info'])
-        elif game_type == ConfigScreen.JOIN:
-            game_id = config['game_info']
-        else:
-            raise KeyError("Unknown game type: %s" % game_type)
-        
-        # Connect the game instance to the game server by adding 
-        # a server listener to it. 
-        game.listener = ServerEventListener(game,
-                                       online_game_id=game_id,
-                                       screen_name=config['screen_name'])
-        game.listener.listen()
-   
     return game
 
 class Game(object):
