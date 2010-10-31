@@ -122,16 +122,18 @@ class Game(object):
             
         # Game may be waiting to start.
         # Don't propagate keyboard input in that case.
-        if self.started:
-            if key in KEYMAP:
-                self.move_piece(KEYMAP[key])
+        if not self.started:
+            return
+        
+        if key in KEYMAP:
+            self.move_piece(KEYMAP[key])
+            
+            if key == K_DOWN:
+                self.downward_accelerated = True
                 
-                if key == K_DOWN:
-                    self.downward_accelerated = True
-                    
-            elif key in ROTATION_MAP:
-                self.rotate_piece(ROTATION_MAP[key])
-    
+        elif key in ROTATION_MAP:
+            self.rotate_piece(ROTATION_MAP[key])
+
     def handle_keyrelease(self, key):
         """
         Currently only the release of the "down" key is relevant,
@@ -143,8 +145,6 @@ class Game(object):
       
     def tear_down(self):
         self.aborted = True
-        if self.listener:
-            self.listener.abort = True
         
     def proceed(self, passed_time):
         """
@@ -196,18 +196,7 @@ class Game(object):
                 self.gameover = True
             
     def check_victory(self):
-        if not self.listener:
-            # There may be a single player "victory" one day ... 
-            # the conditions for that should be defined here.
-            return False
-        else:
-            # we are alive, the game already started and
-            # there is only one player left => victory, dude! :)
-            if (not self.listener.abort 
-                and self.started 
-                and len(self.listener.players) == 1):
-                print "%s %s %s" % (self.listener, self.started, self.listener.players)
-                return True                
+        return False
        
     def rotate_piece(self, rotation_key, steps=1):
         """
@@ -375,6 +364,13 @@ class MultiplayerGame(Game):
 
         Game.proceed(self, passed_time)
     
+    def check_victory(self):
+        # we are alive, the game already started and
+        # there is only one player left => victory, dude! :)
+        return (not self.listener.abort 
+                and self.started 
+                and len(self.listener.players) == 1)
+            
     def regurgitate(self, number_of_lines):
         """
         Puts a regurgitation event into the queue
@@ -395,6 +391,11 @@ class MultiplayerGame(Game):
             gap_index = random.randint(0, self.column_nr - 1)
             penalty_line[gap_index:gap_index+1] = 0, 0
             self.cells.extend(penalty_line * number_of_lines)
+    
+    def tear_down(self):
+        if self.listener:
+            self.listener.abort = True
+        Game.tear_down(self)
     
 class SingleplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):
