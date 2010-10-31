@@ -67,7 +67,11 @@ class Game(object):
         # The active piece for the player to control
         self.moving_piece = None
         
+        # Game is lost
         self.gameover = False
+        # Game is won (probably for multiplayer only)
+        self.victorious = False
+        # Game is aborted
         self.aborted = False
         
         # Initially the game waits for a start signal
@@ -145,14 +149,18 @@ class Game(object):
       
     def tear_down(self):
         self.aborted = True
-        
+    
+    def handle_game_over(self):
+        self.gameover = True
+   
     def proceed(self, passed_time):
         """
         Lets the given amount of time 'pass'. If the accumulated time
         is greater than the drop interval (=the game speed), reset the 
         clock and move the active piece downwards.
         """
-        if not self.started:
+        
+        if not self.started or self.gameover:
             return
         
         self.clock += passed_time
@@ -170,6 +178,8 @@ class Game(object):
             acceleration = getattr(self, 'level', 0)
             self.drop_interval = max(50, 500 - acceleration * 25)
 
+        self.check_victory()
+        
     def take_one_step(self):
         """
         Takes one step in time.
@@ -193,7 +203,7 @@ class Game(object):
             
             # If there is any overlap with existing pieces, we're screwed
             if any([self.cells[i] for i in self.moving_piece.get_indexes()]):
-                self.gameover = True
+                self.handle_game_over()
             
     def check_victory(self):
         return False
@@ -367,10 +377,13 @@ class MultiplayerGame(Game):
     def check_victory(self):
         # we are alive, the game already started and
         # there is only one player left => victory, dude! :)
-        return (not self.listener.abort 
-                and self.started 
-                and len(self.listener.players) == 1)
-            
+        self.victorious = (not self.aborted
+                           and not self.gameover
+                           and self.started 
+                           and len(self.listener.players) == 1)
+        
+        return self.victorious    
+                    
     def regurgitate(self, number_of_lines):
         """
         Puts a regurgitation event into the queue
@@ -380,6 +393,8 @@ class MultiplayerGame(Game):
         
     def insert_penalties(self):
         number_of_lines = self.penalties.popleft()
+        
+        penalty_is_fatal = any(self.cells[:self.column_nr * number_of_lines])
         
         # delete the topmost n rows
         del self.cells[:self.column_nr * number_of_lines]
@@ -392,11 +407,10 @@ class MultiplayerGame(Game):
             penalty_line[gap_index:gap_index+1] = 0, 0
             self.cells.extend(penalty_line * number_of_lines)
     
-    def tear_down(self):
-        if self.listener:
-            self.listener.abort = True
-        Game.tear_down(self)
-    
+        if penalty_is_fatal:
+            # That was too much to swallow ... we're screwed
+            self.handle_game_over()
+        
 class SingleplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):
         Game.__init__(self, dimensions, duck_probability)

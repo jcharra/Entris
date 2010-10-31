@@ -77,10 +77,8 @@ class GameWindow(pygame.Surface):
         """
         
         if self.game_model.gameover:
-            if self.game_model.listener:
-                self.game_model.listener.abort = True
             self.render_game_over_screen()
-        elif self.game_model.check_victory():
+        elif self.game_model.victorious:
             self.render_winner_screen()
         elif not self.game_model.started:            
             self.render_waiting_screen()

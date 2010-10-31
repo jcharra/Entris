@@ -29,11 +29,12 @@ def play_game(main_screen, config):
             elif event.type == pygame.KEYUP:
                 game.handle_keyrelease(event.key)
         
-        passed_time = clock.tick(30)
-                
-        game.proceed(passed_time)
         game_window.update_view(main_screen)
         pygame.display.update()
+        
+        passed_time = clock.tick(30)
+        game.proceed(passed_time)
+        
 
 if __name__ == '__main__':
     config_screen = ConfigScreen(CONFIG_SCREEN_DIMENSIONS[0])

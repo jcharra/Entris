@@ -56,7 +56,6 @@ class ServerEventListener(object):
         
         self.connection = None
         self.connect_to_game()
-        self.abort = False
         
         assert self.game_id, 'No game id provided'
 
@@ -65,7 +64,7 @@ class ServerEventListener(object):
         self.updateThread.start()
 
     def synchronize(self):
-        while not self.abort:
+        while not self.game.aborted:
             self.update_players_list()
             time.sleep(1)
             if self.ask_for_start_permission():
@@ -77,7 +76,9 @@ class ServerEventListener(object):
         self.update_players_list()
         self.game.started = True
         
-        while not self.abort and not self.game.gameover:
+        while (not self.game.aborted 
+               and not self.game.gameover
+               and not self.game.victorious):
             time.sleep(1)
 
             self.get_lines()
