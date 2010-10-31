@@ -57,7 +57,6 @@ def create_game(config):
         except ConnectionFailed, msg:
             # This game must be immediately aborted.
             # Apparently it doesn't exist.
-            logger.info("Connecting to game failed (%s)" % msg)
             game.aborted = True
 
     return game
