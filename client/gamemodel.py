@@ -60,6 +60,8 @@ class Game(object):
 
     def __init__(self, dimensions, part_generator):
         self.column_nr, self.row_nr = self.dimensions = dimensions
+        
+        # Initialize all cells to zero (=not occupied)
         self.cells = [0 for _ in range(self.column_nr) for _ in range(self.row_nr)]
         
         # The active piece for the player to control
@@ -85,6 +87,8 @@ class Game(object):
         # lines being deleted etc. 
         self.observers = []
         
+        # This represents the dropping speed of the active
+        # piece, i.e. the time in ms between each step.
         self.drop_interval = 500
         
         # Since the downward acceleration by the player is meant to be "continuous"
@@ -92,12 +96,12 @@ class Game(object):
         # if we're already in accelerated mode.
         self.downward_accelerated = False
         
+        # The game model keeps track of the time that has passed
         self.clock = 0
-        self.listener = None
         
     def init_direction_map(self):
         """
-        Returns a mapping of the four basic directions
+        Initializes the mapping of the four basic directions
         N, E, S, W to corresponding differences in means
         of grid indexes.
         """        
@@ -130,11 +134,12 @@ class Game(object):
     
     def handle_keyrelease(self, key):
         """
-        User released a key - possibly the "down" key. So stop downward-
-        accelerating the active piece.
+        Currently only the release of the "down" key is relevant,
+        as that will toggle the downward acceleration.
         """
         
-        self.downward_accelerated = False
+        if key == K_DOWN:
+            self.downward_accelerated = False
       
     def tear_down(self):
         self.aborted = True
