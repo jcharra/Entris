@@ -43,6 +43,8 @@ class GameWindow(pygame.Surface):
     
         self.message_layover = TransparentLayover(self)
     
+        self.last_frame_before_death_rendered = False
+    
         # Plug the into game a sound manager to get notified 
         # of sound-worthy events.
         self.sound_manager = SoundManager()
@@ -77,7 +79,12 @@ class GameWindow(pygame.Surface):
         """
         
         if self.game_model.gameover:
-            self.render_game_over_screen()
+            # We may need to render one last frame
+            if not self.last_frame_before_death_rendered:
+                self.render_game()
+                self.last_frame_before_death_rendered = True
+            else:
+                self.render_game_over_screen()
         elif self.game_model.victorious:
             self.render_winner_screen()
         elif not self.game_model.started:            
@@ -94,16 +101,6 @@ class GameWindow(pygame.Surface):
                                                        self.game_model.listener.players)
         else:
             self.status_window.renderSinglePlayerScreen()
-    
-    def render_waiting_screen(self):
-        """
-        For multiplayer games: We might be waiting for other players.
-        """
-        
-        missing = self.game_model.listener.get_number_of_players_missing()
-        plural_s = 's' if missing != 1 else ''
-        text = "Waiting for %s more player%s ..." % (missing, plural_s)
-        self.message_layover.render_message(text, fontsize=14, fade=False)        
     
     def render_game(self):
         """
@@ -139,6 +136,16 @@ class GameWindow(pygame.Surface):
 
     def darken(self, color):
         return [min(255, int(x * 1.3)) for x in color]
+    
+    def render_waiting_screen(self):
+        """
+        For multiplayer games: We might be waiting for other players.
+        """
+        
+        missing = self.game_model.listener.get_number_of_players_missing()
+        plural_s = 's' if missing != 1 else ''
+        text = "Waiting for %s more player%s ..." % (missing, plural_s)
+        self.message_layover.render_message(text, fontsize=14, fade=False)        
     
     def render_game_over_screen(self):
         """
