@@ -1,7 +1,6 @@
 
 import httplib
 import urllib
-import sys
 import time
 import threading
 from collections import deque 
@@ -11,7 +10,7 @@ from events import LinesDeletedEvent
 #GAME_SERVER = 'localhost:8090'
 GAME_SERVER = 'entrisserver.appspot.com'
 
-class ServerNotAvailable(Exception):
+class ConnectionFailed(Exception):
     pass
 
 def create_new_game(size, connection_str=GAME_SERVER):
@@ -145,7 +144,7 @@ class ServerEventListener(object):
                raise httplib.CannotSendRequest('Sending failed with response %s' % response)
                 
         except (httplib.CannotSendRequest, Exception), exc:
-            print "Errors while sendling lines to the server (%s)" % exc
+            print "Errors while sending lines to the server (%s)" % exc
 
     def notify(self, event):
         if isinstance(event, LinesDeletedEvent):
@@ -162,12 +161,12 @@ class ServerEventListener(object):
         connection_str = self.host
 
         attempts = 0
-        while attempts < 10:
+        while attempts < 3:
             try:
                 self.connection = httplib.HTTPConnection(connection_str)
                 self.connection.request("GET", "/register?game_id=%s&screen_name=%s" 
                                         % (self.game_id, self.screen_name))
-                self.player_id = self.connection.getresponse().read()
+                self.player_id = int(self.connection.getresponse().read())
 
                 return
             except Exception, exc:
@@ -175,7 +174,7 @@ class ServerEventListener(object):
                 time.sleep(1)
                 attempts += 1
                 
-        raise ServerNotAvailable("Could not register at %s" % connection_str)
+        raise ConnectionFailed("Could not register at %s" % connection_str)
     
     
     

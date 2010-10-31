@@ -5,7 +5,7 @@ from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator
 from events import LinesDeletedEvent, QuackEvent
 from configscreen import ConfigScreen
-from networking import ServerEventListener, create_new_game
+from networking import ServerEventListener, create_new_game, ConnectionFailed
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -47,12 +47,18 @@ def create_game(config):
         # signal from the server.
         game.started = False
         
-        # Connect the game instance to the game server by adding 
-        # a server listener to it. 
-        game.listener = ServerEventListener(game,
-                                            online_game_id=game_id,
-                                            screen_name=config['screen_name'])
-        game.listener.listen()
+        try:
+            # Connect the game instance to the game server by adding 
+            # a server listener to it. 
+            game.listener = ServerEventListener(game,
+                                                online_game_id=game_id,
+                                                screen_name=config['screen_name'])
+            game.listener.listen()
+        except ConnectionFailed, msg:
+            # This game must be immediately aborted.
+            # Apparently it doesn't exist.
+            logger.info("Connecting to game failed (%s)" % msg)
+            game.aborted = True
 
     return game
 
