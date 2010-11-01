@@ -7,8 +7,8 @@ from collections import deque
 from events import LinesDeletedEvent
 
 # TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ConnectionFailed(Exception):
     pass
@@ -49,6 +49,7 @@ class ServerEventListener(object):
         
         self.lines_to_send = deque()
         self.players = []
+        self.player_game_snapshots = {}
         
         # default, will be reset after first status update
         self.game_size = 2
@@ -104,16 +105,35 @@ class ServerEventListener(object):
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
             status_string = self.connection.getresponse().read()
             # TODO: Parse status report and put it into a GameStatus object
-            status, players, size = status_string.split('|')[:3]        
+            started, players, size, snapshots = status_string.split('|')[:4]        
             self.players = players.split(",")
             self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
-            print ("Status fetching for game %s failed. (%s)" 
-                   % (self.game_id, err))
+            print ("Status fetching for game %s failed."
+                   " Status string was %s"
+                   " Error msg: %s" 
+                   % (self.game_id, status_string, err))
+
+        snapshot_list = snapshots.split(';')
+        try:
+            self.player_game_snapshots = dict(elem.split(':') 
+                                              for elem in snapshot_list)
+        except ValueError:
+            self.player_game_snapshots = {}
+        
     
     def get_lines(self):
+        """
+        This request is sent periodically to the server, in
+        order to receive penalties from other players.
+        
+        To 'authorize' the request, the client sends a snapshot
+        of his game in a compressed format.
+        """
+        
         params = urllib.urlencode({'game_id': self.game_id,
-                                   'player_id': self.player_id})
+                                   'player_id': self.player_id,
+                                   'game_snapshot': self.game.compressed_repr()})
         
         try:
             self.connection.request("GET", "/receive?%s" % params)

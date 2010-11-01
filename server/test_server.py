@@ -74,7 +74,7 @@ class ServerTest(unittest.TestCase):
         
         self.conn.request("GET", "/status?game_id=%s" % self.game_id)
         resp = self.conn.getresponse().read()
-        status, players, penalties = resp.split('|')[:3]
+        status, players, size, snapshots = resp.split('|')[:4]
         assert players == '', "Status fetching fails: %s" % resp
 
 

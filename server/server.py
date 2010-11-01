@@ -1,9 +1,6 @@
 
-import web
-import sys 
 import time
 from collections import deque
-import threading
 import random
 import logging
 
@@ -36,10 +33,15 @@ class Game():
         
         self.player_penalties = {}
         self.screen_names = {}
-        self.size = max(min(size, 10), 2)
+        self.size = max(min(size, 6), 2)
         
         self.seconds_timeout_to_unregister = 5
         self.last_get_timestamp = {}
+        
+        # A mapping from the game's player ids
+        # to snapshots of their game states,
+        # in compressed format
+        self.game_snapshot = {}
         
         # Game starts when all players have logged on
         self.started = False
@@ -94,6 +96,15 @@ class Game():
 
     def is_alive(self):
         return len(self.player_penalties) > 1
+    
+    def store_snapshot(self, player_id, snapshot):
+        logger.info("Store %s for player id %s" % (snapshot, player_id))
+        self.game_snapshot[player_id] = snapshot
+    
+    def get_snapshots(self):
+        items = ["%s:%s" % (pid, snapshot) 
+                 for pid, snapshot in self.game_snapshot.items()]
+        return ";".join(items)
     
     def get_penalties(self, player_id):
         stamp = time.time()
@@ -204,8 +215,9 @@ class StatusReport(webapp.RequestHandler):
             messages = []
             messages.append("Started: %s" % game.started)
             messages.append(",".join(game.screen_names.values()))
-#            messages.append(",".join(game.player_penalties.keys()))
             messages.append(str(game.size))
+            messages.append(game.get_snapshots())
+            
             self.response.out.write("|".join(messages))
     
 class UpdateRequest(webapp.RequestHandler):
@@ -219,6 +231,10 @@ class UpdateRequest(webapp.RequestHandler):
             pen = penalties.popleft()
         else:
             pen = 0
+            
+        # Store the snapshot of the player's game
+        snapshot = self.request.get('game_snapshot', '')
+        game.store_snapshot(player_id, snapshot)
             
         self.response.out.write("#%s#" % pen)
         

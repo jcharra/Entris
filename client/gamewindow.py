@@ -97,8 +97,7 @@ class GameWindow(pygame.Surface):
         Render the status window depending on game type.
         """
         if self.game_model.listener:
-            self.status_window.renderMultiPlayerScreen(self.game_model.listener.game_id, 
-                                                       self.game_model.listener.players)
+            self.status_window.renderMultiPlayerScreen()
         else:
             self.status_window.renderSinglePlayerScreen()
     

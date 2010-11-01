@@ -30,15 +30,15 @@ class StatusWindow(pygame.Surface):
         self.render_level()
         self.render_score()
     
-    def renderMultiPlayerScreen(self, game_id, players):    
+    def renderMultiPlayerScreen(self):    
         self.render_base()
-        self.render_game_id(game_id)
-        self.render_players(players)
+        self.render_game_id(self.game.listener.game_id)
+        self.render_players(self.game.listener.players)
         
         if not self.players_at_game_start and self.game.started:
             # Make a snapshot of the players that 
             # are alive at the beginning
-            self.players_at_game_start = players
+            self.players_at_game_start = self.game.listener.players
 
     def render_game_id(self, game_id):
         text_img = self.font.render("Game %s" % game_id, 1, (127, 127, 0))
@@ -79,7 +79,8 @@ class StatusWindow(pygame.Surface):
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
         # so use the list of players that we received as argument.
-        for idx, player in enumerate(self.players_at_game_start or players):
+        #for idx, player in enumerate(self.players_at_game_start or players):
+        for idx, player in enumerate(players):
             # Paint deceased players gray ... others coloured
             color = self.font_color if player in players else (50, 50, 50)
             t_img = player_list_font.render(str(player), 1, color)

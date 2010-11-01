@@ -373,7 +373,7 @@ class Game(object):
         """
         binary_count_list = ["%s,%s" % (int(x), len(list(y))) 
                              for x, y in itertools.groupby(self.cells, key=bool)]
-        return ",".join(binary_count_list)
+        return str(self.column_nr) + "," + ",".join(binary_count_list)
     
 class MultiplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):
