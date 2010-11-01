@@ -69,23 +69,36 @@ class StatusWindow(pygame.Surface):
         self.blit(text_img, text_pos)
     
     def render_players(self):
-        player_list_font = pygame.font.Font('jack_type.ttf', 18)
+        player_list_font = pygame.font.Font('jack_type.ttf', 14)
+        
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
         # so use the list of players stored in the game instance.
         player_list_for_display = self.players_at_game_start or self.game.listener.players
+        
+        # Divide the remaining space evenly
+        # for the list of opponents.
+        vertical_remainder = self.get_height() - 230
+        player_monitor_height = vertical_remainder/2 - 2
+        player_monitor_width = self.get_width()/2 - 2
+        
         for idx, player_id in enumerate(player_list_for_display.keys()):
             # Paint deceased players gray ... others coloured
             color = self.font_color if player_id in self.game.listener.players else (50, 50, 50)
             
-            # TODO: Display miniature view of snapshot here
-            snapshot_length = len(self.game.listener.player_game_snapshots.get(player_id, ''))
-            player_name = self.game.listener.players.get(player_id)
+            player_name = self.players_at_game_start.get(player_id)
             
-            t_img = player_list_font.render("%s %s" % (player_name, snapshot_length), 1, color)
+            x_start = (idx % 2) * player_monitor_width + 1
+            y_start = 230 + (idx / 2) * player_monitor_height + 1
+            
+            t_img = player_list_font.render(player_name, 1, color)
             t_pos = t_img.get_rect()
-            t_pos.centerx = self.get_rect().centerx
-            t_pos.centery = 230 + idx * 24
+            t_pos.left = x_start + 5
+            t_pos.top = y_start
+            
+            monitor = pygame.Surface((player_monitor_width, player_monitor_height))
+            monitor.fill((idx*75, idx*75, idx*75))
+            self.blit(monitor, (x_start, y_start))
             self.blit(t_img, t_pos)
         
     def render_preview(self):

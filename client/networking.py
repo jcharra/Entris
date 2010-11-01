@@ -102,11 +102,13 @@ class ServerEventListener(object):
     
     # FIXME: This method is pretty ugly and cumbersome
     def update_players_list(self):
+        snapshots = players = ''
+        
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
             status_string = self.connection.getresponse().read()
             # TODO: Parse status report and put it into a GameStatus object
-            started, players, size, snapshots = status_string.split('|')[:4]        
+            players, size, snapshots = status_string.split('|')[1:4]        
             self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
             print ("Status fetching for game %s failed."
@@ -114,15 +116,17 @@ class ServerEventListener(object):
                    " Error msg: %s" 
                    % (self.game_id, status_string, err))
 
-        # parse players/snapshots dictionaries
-        snapshot_list = snapshots.split(';')
-        players_list = players.split(",")
         try:
+            # parse players/snapshots dictionaries
+            snapshot_list = snapshots.split(';')
+            players_list = players.split(",")
+
             self.players = dict(elem.split(':') 
                                 for elem in players_list)
             self.player_game_snapshots = dict(elem.split(':') 
                                               for elem in snapshot_list)
-        except ValueError:
+        except ValueError, msg:
+            print "Error occurred: %s" % msg
             self.players = {}
             self.player_game_snapshots = {}          
         
@@ -166,7 +170,7 @@ class ServerEventListener(object):
                 # If it worked, remove the element from the deque
                 self.lines_to_send.popleft()
             else:
-               raise httplib.CannotSendRequest('Sending failed with response %s' % response)
+                raise httplib.CannotSendRequest('Sending failed with response %s' % response)
                 
         except (httplib.CannotSendRequest, Exception), exc:
             print "Errors while sending lines to the server (%s)" % exc
