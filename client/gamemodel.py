@@ -1,6 +1,8 @@
 
 import logging
 import random
+import itertools
+
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator
 from events import LinesDeletedEvent, QuackEvent
@@ -364,7 +366,15 @@ class Game(object):
             rows.append(",".join([str(self.cells[j]) 
                                   for j in range(i * self.column_nr, (i + 1) * self.column_nr)]))
         return "\n".join(rows)
-
+    
+    def compressed_repr(self):
+        """
+        Builds a compressed version of the current game
+        """
+        binary_count_list = ["%s,%s" % (int(x), len(list(y))) 
+                             for x, y in itertools.groupby(self.cells, key=bool)]
+        return ",".join(binary_count_list)
+    
 class MultiplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):
         Game.__init__(self, dimensions, duck_probability)
@@ -444,7 +454,9 @@ class SingleplayerGame(Game):
 if __name__ == '__main__':
     config = {'game_size': (10, 10),
               'duck_prob': 0.1}
-    game = Game(config)
+    game = Game(config['game_size'], 
+                random_part_generator(config['duck_prob']))
+    
     assert game.cells == [0] * 100
     # proceed until piece arrives at bottom
     while not any([game.cells]):
@@ -459,6 +471,10 @@ if __name__ == '__main__':
     game.cells += [0]
     indexes = game.find_complete_rows_indexes()
     assert indexes == [7, 8], 'find_complete_rows_indexes failed'
+    
+    compressed = game.compressed_repr()
+    assert compressed == "0,70,1,29,0,1", "Compressed repr corrupted: %s" % compressed
+    
     game.delete_rows(indexes)
     assert game.cells == [0] * 90 + [(1, 1, 1)] * 9 + [0], "Deletion incorrect: \n%s" % game
     
@@ -467,11 +483,7 @@ if __name__ == '__main__':
     game.get_next_piece()
     assert old_queue[1:] == list(game.piece_queue)[:-1], "%s is not the predecessor of %s" % (old_queue, game.piece_queue)
     
-    game.cells = [0] * 100
-    game.penalties = deque([2])
-    game.insert_penalties()
-    cells_afterwards_should_be = [0] * 80 + [(100, 100, 100), 0] * 10
-    assert game.cells == cells_afterwards_should_be, "\n%s \nvs.\n%s" % (game.cells, cells_afterwards_should_be)
+    
     
     
     
