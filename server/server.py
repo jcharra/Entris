@@ -58,6 +58,7 @@ class Game():
         # Use default if screen name is missing
         self.screen_names[player_id] = (self.adjust_name(screen_name) 
                                         if screen_name else "player%s" % player_id)
+        self.game_snapshot[player_id] = ''        
         
         if self.is_full():
             for pid in self.player_penalties:
@@ -106,6 +107,11 @@ class Game():
                  for pid, snapshot in self.game_snapshot.items()]
         return ";".join(items)
     
+    def get_names(self):
+        items = ["%s:%s" % (pid, name) 
+                 for pid, name in self.screen_names.items()]
+        return ",".join(items)
+        
     def get_penalties(self, player_id):
         stamp = time.time()
         
@@ -214,7 +220,7 @@ class StatusReport(webapp.RequestHandler):
         else:    
             messages = []
             messages.append("Started: %s" % game.started)
-            messages.append(",".join(game.screen_names.values()))
+            messages.append(game.get_names())
             messages.append(str(game.size))
             messages.append(game.get_snapshots())
             

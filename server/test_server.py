@@ -66,7 +66,7 @@ class ServerTest(unittest.TestCase):
     
     def test_timeout(self):
         # Provoke timeout
-        time.sleep(5)
+        time.sleep(6)
 
         # This request should now cause all players to be kicked ...
         self.conn.request("GET", "/receive?game_id=%s&player_id=%s" % (self.game_id, self.player_ids[0]))

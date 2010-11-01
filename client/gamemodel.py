@@ -167,7 +167,7 @@ class Game(object):
         clock and move the active piece downwards.
         """
         
-        if not self.started or self.gameover:
+        if not self.started or self.gameover or self.victorious:
             return
         
         self.clock += passed_time

@@ -18,7 +18,7 @@ class StatusWindow(pygame.Surface):
         self.font = pygame.font.Font('jack_type.ttf', 18)
         
         # Keep track of players that have been in the game
-        self.players_at_game_start = []
+        self.players_at_game_start = {}
     
     def render_base(self):
         # background
@@ -32,19 +32,19 @@ class StatusWindow(pygame.Surface):
     
     def renderMultiPlayerScreen(self):    
         self.render_base()
-        self.render_game_id(self.game.listener.game_id)
-        self.render_players(self.game.listener.players)
+        self.render_game_id()
+        self.render_players()
         
         if not self.players_at_game_start and self.game.started:
             # Make a snapshot of the players that 
             # are alive at the beginning
             self.players_at_game_start = self.game.listener.players
 
-    def render_game_id(self, game_id):
-        text_img = self.font.render("Game %s" % game_id, 1, (127, 127, 0))
+    def render_game_id(self):
+        text_img = self.font.render("Game %s" % self.game.listener.game_id, 1, (127, 127, 0))
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 380
+        text_pos.centery = 200
         self.blit(text_img, text_pos)
             
     def render_score(self):
@@ -68,22 +68,21 @@ class StatusWindow(pygame.Surface):
         text_pos.centery = 250
         self.blit(text_img, text_pos)
     
-    def render_players(self, players):
-        text_img = self.font.render("Players in game:", 1, self.font_color)
-        text_pos = text_img.get_rect()
-        text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 200
-        self.blit(text_img, text_pos)
-        
+    def render_players(self):
         player_list_font = pygame.font.Font('jack_type.ttf', 18)
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
-        # so use the list of players that we received as argument.
-        #for idx, player in enumerate(self.players_at_game_start or players):
-        for idx, player in enumerate(players):
+        # so use the list of players stored in the game instance.
+        player_list_for_display = self.players_at_game_start or self.game.listener.players
+        for idx, player_id in enumerate(player_list_for_display.keys()):
             # Paint deceased players gray ... others coloured
-            color = self.font_color if player in players else (50, 50, 50)
-            t_img = player_list_font.render(str(player), 1, color)
+            color = self.font_color if player_id in self.game.listener.players else (50, 50, 50)
+            
+            # TODO: Display miniature view of snapshot here
+            snapshot_length = len(self.game.listener.player_game_snapshots.get(player_id, ''))
+            player_name = self.game.listener.players.get(player_id)
+            
+            t_img = player_list_font.render("%s %s" % (player_name, snapshot_length), 1, color)
             t_pos = t_img.get_rect()
             t_pos.centerx = self.get_rect().centerx
             t_pos.centery = 230 + idx * 24

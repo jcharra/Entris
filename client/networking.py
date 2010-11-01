@@ -7,8 +7,8 @@ from collections import deque
 from events import LinesDeletedEvent
 
 # TODO: Put this into a config file
-GAME_SERVER = 'localhost:8090'
-#GAME_SERVER = 'entrisserver.appspot.com'
+#GAME_SERVER = 'localhost:8090'
+GAME_SERVER = 'entrisserver.appspot.com'
 
 class ConnectionFailed(Exception):
     pass
@@ -48,7 +48,7 @@ class ServerEventListener(object):
         self.screen_name = screen_name
         
         self.lines_to_send = deque()
-        self.players = []
+        self.players = {}
         self.player_game_snapshots = {}
         
         # default, will be reset after first status update
@@ -100,13 +100,13 @@ class ServerEventListener(object):
         # TODO: Parse status report and put it into a GameStatus object
         return status.startswith("Started: True")
     
+    # FIXME: This method is pretty ugly and cumbersome
     def update_players_list(self):
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
             status_string = self.connection.getresponse().read()
             # TODO: Parse status report and put it into a GameStatus object
             started, players, size, snapshots = status_string.split('|')[:4]        
-            self.players = players.split(",")
             self.game_size = int(size)
         except (httplib.CannotSendRequest, ValueError), err:
             print ("Status fetching for game %s failed."
@@ -114,12 +114,17 @@ class ServerEventListener(object):
                    " Error msg: %s" 
                    % (self.game_id, status_string, err))
 
+        # parse players/snapshots dictionaries
         snapshot_list = snapshots.split(';')
+        players_list = players.split(",")
         try:
+            self.players = dict(elem.split(':') 
+                                for elem in players_list)
             self.player_game_snapshots = dict(elem.split(':') 
                                               for elem in snapshot_list)
         except ValueError:
-            self.player_game_snapshots = {}
+            self.players = {}
+            self.player_game_snapshots = {}          
         
     
     def get_lines(self):
