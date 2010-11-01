@@ -39,7 +39,9 @@ class GameWindow(pygame.Surface):
         # The threshold (in milliseconds) indicating that the next step is due
         self.drop_interval = 500
         
-        self.status_window = StatusWindow((200, self.get_height()), self.game_model)
+        self.status_window = StatusWindow((self.get_width()*3/4, 
+                                           self.get_height()), 
+                                           self.game_model)
     
         self.message_layover = TransparentLayover(self)
     
