@@ -1,6 +1,7 @@
 
 import httplib
 import urllib
+import socket
 import time
 import threading
 from collections import deque 
@@ -15,9 +16,12 @@ class ConnectionFailed(Exception):
 
 def create_new_game(size, connection_str=GAME_SERVER):
     conn = httplib.HTTPConnection(connection_str)
-    conn.request("GET", "/new?size=%s" % size)
-    game_id = int(conn.getresponse().read())
-    return game_id
+    try:
+        conn.request("GET", "/new?size=%s" % size)
+        game_id = int(conn.getresponse().read())
+        return game_id
+    except socket.error, msg:
+        pass
 
 POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                 "Accept": "text/plain"}
