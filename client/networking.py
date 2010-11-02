@@ -20,7 +20,7 @@ def create_new_game(size, connection_str=GAME_SERVER):
         conn.request("GET", "/new?size=%s" % size)
         game_id = int(conn.getresponse().read())
         return game_id
-    except socket.error, msg:
+    except socket.error:
         pass
 
 POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
@@ -114,7 +114,7 @@ class ServerEventListener(object):
             # TODO: Parse status report and put it into a GameStatus object
             players, size, snapshots = status_string.split('|')[1:4]        
             self.game_size = int(size)
-        except (httplib.CannotSendRequest, ValueError), err:
+        except Exception, err:
             print ("Status fetching for game %s failed."
                    " Status string was %s"
                    " Error msg: %s" 

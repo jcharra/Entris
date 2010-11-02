@@ -109,7 +109,8 @@ class Game():
     
     def get_names(self):
         items = ["%s:%s" % (pid, name) 
-                 for pid, name in self.screen_names.items()]
+                 for pid, name in self.screen_names.items()
+                 if pid in self.player_penalties]
         return ",".join(items)
         
     def get_penalties(self, player_id):
@@ -233,6 +234,7 @@ class UpdateRequest(webapp.RequestHandler):
         game = games[game_id]
         player_id = self.request.get('player_id')
         penalties = game.get_penalties(player_id)
+        
         if penalties:
             pen = penalties.popleft()
         else:
