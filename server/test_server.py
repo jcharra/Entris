@@ -1,6 +1,5 @@
 import httplib
 import urllib
-import threading
 import unittest
 #import server
 import time
@@ -19,7 +18,7 @@ class ServerTest(unittest.TestCase):
         self.player_ids = []
 
         # add five players
-        for i in range(5):
+        for _ in range(5):
             self.conn.request("GET", "/register?game_id=%s" % self.game_id)
             player_id = int(self.conn.getresponse().read())
             self.player_ids.append(player_id)
@@ -74,7 +73,7 @@ class ServerTest(unittest.TestCase):
         
         self.conn.request("GET", "/status?game_id=%s" % self.game_id)
         resp = self.conn.getresponse().read()
-        status, players, size, snapshots = resp.split('|')[:4]
+        players = resp.split('|')[2]
         assert players == '', "Status fetching fails: %s" % resp
 
 
