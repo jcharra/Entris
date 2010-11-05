@@ -7,7 +7,8 @@ def compress(game):
     """
     Builds a compressed version of a game instance
     """
-    cells = "".join([("1" if c else "0") for c in game.cells])
+    cells = "".join([("1" if (c or idx in game.moving_piece_indexes) 
+                      else "0") for idx, c in enumerate(game.cells)])
     return str(game.column_nr) + "," + cells
 
 def decompress(compressed):
