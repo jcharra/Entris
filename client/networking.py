@@ -9,8 +9,8 @@ from events import LinesDeletedEvent
 from monitoring import compress
 
 # TODO: Put this into a config file
-GAME_SERVER = 'localhost:8090'
-#GAME_SERVER = 'entrisserver.appspot.com'
+#GAME_SERVER = 'localhost:8090'
+GAME_SERVER = 'entrisserver.appspot.com'
 
 class ConnectionFailed(Exception):
     pass

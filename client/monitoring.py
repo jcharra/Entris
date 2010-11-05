@@ -7,8 +7,9 @@ def compress(game):
     """
     Builds a compressed version of a game instance
     """
-    cells = "".join([("1" if (c or idx in game.moving_piece_indexes) 
-                      else "0") for idx, c in enumerate(game.cells)])
+    cells = "".join(["1" if (c or idx in game.moving_piece_indexes) 
+                     else "0" 
+                     for idx, c in enumerate(game.cells)])
     return str(game.column_nr) + "," + cells
 
 def decompress(compressed):
@@ -20,7 +21,7 @@ def decompress(compressed):
     parts = compressed.split(",")
     
     if len(parts) != 2:
-        # Probably empty still ... ignore it
+        # Probably still empty ... ignore it
         return None
     
     row_length_str, data = int(parts[0]), parts[1]
@@ -35,16 +36,21 @@ def decompress(compressed):
     return bin_array
 
 class GameMonitor(pygame.Surface):
-    '''
+    """
     Class to render a micro view of a game given
     in an encoded format.
-    '''
+    """
 
     def __init__(self, dimensions):
         self.dimensions = dimensions
         pygame.Surface.__init__(self, self.dimensions)
         
     def render_game(self, compressed_game):
+        """
+        Expects a string representing a game in compressed
+        format, as resulting from the 'compress' function above.
+        """
+        
         game_as_array = decompress(compressed_game)
         
         if not game_as_array:

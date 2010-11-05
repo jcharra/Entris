@@ -70,6 +70,13 @@ class StatusWindow(pygame.Surface):
         self.blit(text_img, text_pos)
     
     def render_players(self):
+        """
+        Renders the players and their respective game monitors.
+        TODO: Refactor me!
+              Avoid instantiating a Monitor object on each call
+              => implement a monitors dictionary, keeping the player
+              ids as keys and monitor objects as values.
+        """
         player_list_font = pygame.font.Font('jack_type.ttf', 14)
         player_missing_font = pygame.font.Font('jack_type.ttf', 36)
         

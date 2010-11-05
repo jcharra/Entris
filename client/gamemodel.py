@@ -1,7 +1,6 @@
 
 import logging
 import random
-import itertools
 
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator
