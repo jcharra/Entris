@@ -367,13 +367,6 @@ class Game(object):
                                   for j in range(i * self.column_nr, (i + 1) * self.column_nr)]))
         return "\n".join(rows)
     
-    def compressed_repr(self):
-        """
-        Builds a compressed version of the current game
-        """
-        binary_count_list = ["%s,%s" % (int(x), len(list(y))) 
-                             for x, y in itertools.groupby(self.cells, key=bool)]
-        return str(self.column_nr) + "," + ",".join(binary_count_list)
     
 class MultiplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):
@@ -471,9 +464,6 @@ if __name__ == '__main__':
     game.cells += [0]
     indexes = game.find_complete_rows_indexes()
     assert indexes == [7, 8], 'find_complete_rows_indexes failed'
-    
-    compressed = game.compressed_repr()
-    assert compressed == "0,70,1,29,0,1", "Compressed repr corrupted: %s" % compressed
     
     game.delete_rows(indexes)
     assert game.cells == [0] * 90 + [(1, 1, 1)] * 9 + [0], "Deletion incorrect: \n%s" % game

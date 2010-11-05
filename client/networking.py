@@ -6,10 +6,11 @@ import time
 import threading
 from collections import deque 
 from events import LinesDeletedEvent
+from monitoring import compress
 
 # TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+GAME_SERVER = 'localhost:8090'
+#GAME_SERVER = 'entrisserver.appspot.com'
 
 class ConnectionFailed(Exception):
     pass
@@ -146,7 +147,7 @@ class ServerEventListener(object):
         
         params = urllib.urlencode({'game_id': self.game_id,
                                    'player_id': self.player_id,
-                                   'game_snapshot': self.game.compressed_repr()})
+                                   'game_snapshot': compress(self.game)})
         
         try:
             self.connection.request("GET", "/receive?%s" % params)

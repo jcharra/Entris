@@ -1,5 +1,6 @@
 
 import pygame
+from monitoring import GameMonitor
 
 class StatusWindow(pygame.Surface):
     """
@@ -88,16 +89,24 @@ class StatusWindow(pygame.Surface):
         for idx in range(4):
             x_start = (idx % 2) * (player_monitor_width + 1) + 1
             y_start = 230 + (idx / 2) * (player_monitor_height + 1)
-            monitor = pygame.Surface((player_monitor_width, player_monitor_height))
-            monitor.fill((0, 0, 0))
-            self.blit(monitor, (x_start, y_start))
+            
+            # Black background
+            self.fill((0, 0, 0), pygame.Rect(x_start, y_start, 
+                                             player_monitor_width,
+                                             player_monitor_height))
             
             try:
                 player_id = player_ids[idx]
+                player_game_snapshot = self.game.listener.player_game_snapshots[player_id]
+                
                 # Paint deceased players gray ... others coloured
                 color = self.font_color if player_id in self.game.listener.players else (50, 50, 50)
                 
                 player_name = player_list_for_display.get(player_id)
+                
+                monitor = GameMonitor((player_monitor_width, player_monitor_height))
+                monitor.render_game(player_game_snapshot)
+                self.blit(monitor, (x_start, y_start))
                 
                 t_img = player_list_font.render(player_name, 1, color)
                 t_pos = t_img.get_rect()
