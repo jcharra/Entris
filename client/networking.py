@@ -184,13 +184,13 @@ class ServerEventListener(object):
     def get_next_parts(self):
         params = urllib.urlencode({'game_id': self.game_id,
                                    'player_id': self.player_id})
-        self.connection.request("GET", "/getparts?%s" % params)
         try:
+            self.connection.request("GET", "/getparts?%s" % params)
             parts = [int(x) for x in self.connection.getresponse().read().split(",")]
             return parts
         except:
+            # This may fail from time to time ...
             return []
-            
 
     def notify(self, event):
         if isinstance(event, LinesDeletedEvent):
