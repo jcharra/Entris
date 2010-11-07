@@ -77,7 +77,6 @@ class StatusWindow(pygame.Surface):
               => implement a monitors dictionary, keeping the player
               ids as keys and monitor objects as values.
         """
-        player_missing_font = pygame.font.Font('jack_type.ttf', 36)
         
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
@@ -86,52 +85,38 @@ class StatusWindow(pygame.Surface):
         player_list_for_display = (self.players_at_game_start 
                                    or self.game.listener.players)
         
-        # Divide the remaining space evenly
-        # for the 2x2 opponent monitors.
-        vertical_remainder = self.get_height() - 230
-        player_monitor_height = vertical_remainder/2 - 2
-        player_monitor_width = self.get_width()/2 - 2
+        # We need monitors for each opponent
+        number_of_monitors = self.game.listener.game_size - 1
         
-        player_ids = player_list_for_display.keys()
-        for idx in range(4):
-            x_start = (idx % 2) * (player_monitor_width + 1) + 1
-            y_start = 230 + (idx / 2) * (player_monitor_height + 1)
+        # Determine width of the monitor. Only if there is 
+        # just one opponent, we use the entire width available
+        player_monitor_width = (self.get_width() - 4
+                                if number_of_monitors == 1
+                                else self.get_width() / 2 - 4)
+        
+        vertical_remainder = self.get_height() - 230
+        number_of_monitor_rows = (number_of_monitors+1)/2 
+        player_monitor_height = vertical_remainder/number_of_monitor_rows - 4
+        
+        # Filter out our own id ... no need to monitor ourselves
+        opponent_ids = [pid for pid in player_list_for_display.keys() 
+                        if int(pid) != self.game.listener.player_id]
+         
+        for idx in range(number_of_monitors):
+            x_start = (idx % 2) * (player_monitor_width + 2) + 2
+            y_start = 230 + (idx / 2) * (player_monitor_height + 2)
             
-            try:
-                player_id = player_ids[idx] if idx < len(player_ids) else None 
-                player_game_snapshot = self.game.listener.player_game_snapshots.get(player_id)
-                
-                player_alive = player_id in self.game.listener.players
-                
-                player_name = player_list_for_display.get(player_id)
-                
-                monitor = GameMonitor((player_monitor_width, player_monitor_height))
-                monitor.render_game(player_game_snapshot, 
-                                    player_name, 
-                                    player_alive=player_alive)
-                
-                self.blit(monitor, (x_start, y_start))                
-            except IndexError:
-                # Not enough players present yet ... never mind.
-                # Show a black box if we're expecting someone
-                # to fill in this empty slot, or a red cross
-                # otherwise
-                if idx >= self.game.listener.game_size:
-                    # Draw red cross
-                    pygame.draw.aaline(self, (100, 0, 0), 
-                                     (x_start, y_start), 
-                                     (x_start + player_monitor_width,
-                                      y_start + player_monitor_height))
-                    pygame.draw.aaline(self, (100, 0, 0), 
-                                     (x_start, y_start + player_monitor_height), 
-                                     (x_start + player_monitor_width, y_start))
-                else:
-                    # Draw question mark
-                    question_mark_img = player_missing_font.render("?", 1, (200, 0, 0))
-                    qm_pos = question_mark_img.get_rect()
-                    qm_pos.centerx = x_start + player_monitor_width / 2
-                    qm_pos.centery = y_start + player_monitor_height / 2
-                    self.blit(question_mark_img, qm_pos)
+            opp_id = opponent_ids[idx] if idx < len(opponent_ids) else None            
+            player_game_snapshot = self.game.listener.player_game_snapshots.get(opp_id)
+            player_alive = opp_id in self.game.listener.players
+            player_name = player_list_for_display.get(opp_id)
+            
+            monitor = GameMonitor((player_monitor_width, player_monitor_height))
+            monitor.render_game(player_game_snapshot, 
+                                player_name, 
+                                player_alive=player_alive)
+            
+            self.blit(monitor, (x_start, y_start))                
             
     def render_preview(self):
         text_img = self.font.render("Next", 1, self.font_color)

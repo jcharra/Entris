@@ -45,6 +45,7 @@ class GameMonitor(pygame.Surface):
         self.dimensions = dimensions
         pygame.Surface.__init__(self, self.dimensions)
         self.font = pygame.font.Font('jack_type.ttf', 14)
+        self.big_font = pygame.font.Font('jack_type.ttf', 36)
         
     def render_game(self, compressed_game, player_name, player_alive):
         """
@@ -68,10 +69,17 @@ class GameMonitor(pygame.Surface):
                         x_offset = index * pixel_width
                         self.fill((100, 100, 255), pygame.Rect(x_offset, y_offset, pixel_width, pixel_height)) 
 
-        color = player_alive and (0, 255, 0) or (100, 100, 100) 
-        name_img = self.font.render(player_name, 1, color)
-        self.blit(name_img, (5, 5))
-        
+        if player_name:
+            color = player_alive and (0, 255, 0) or (100, 100, 100) 
+            name_img = self.font.render(player_name, 1, color)
+            self.blit(name_img, (5, 5))
+        else:
+            question_mark_img = self.big_font.render("?", 1, (200, 0, 0))
+            qm_pos = question_mark_img.get_rect()
+            qm_pos.centerx = self.get_width() / 2
+            qm_pos.centery = self.get_height() / 2
+            self.blit(question_mark_img, qm_pos)
+            
 if __name__ == '__main__':
     from gamemodel import Game
     

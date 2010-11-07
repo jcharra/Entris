@@ -51,6 +51,7 @@ class ServerEventListener(object):
         self.host = host
         self.game_id = online_game_id
         self.screen_name = screen_name
+        self.player_id = None
         
         self.lines_to_send = deque()
         self.players = {}
