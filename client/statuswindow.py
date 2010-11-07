@@ -20,7 +20,7 @@ class StatusWindow(pygame.Surface):
         
         # Keep track of players that have been in the game
         self.players_at_game_start = {}
-    
+        
     def render_base(self):
         # background
         self.fill((70, 70, 70))
@@ -77,14 +77,14 @@ class StatusWindow(pygame.Surface):
               => implement a monitors dictionary, keeping the player
               ids as keys and monitor objects as values.
         """
-        player_list_font = pygame.font.Font('jack_type.ttf', 14)
         player_missing_font = pygame.font.Font('jack_type.ttf', 36)
         
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
         # so use the list of players that are currently registered
         # in the game instance.
-        player_list_for_display = self.players_at_game_start or self.game.listener.players
+        player_list_for_display = (self.players_at_game_start 
+                                   or self.game.listener.players)
         
         # Divide the remaining space evenly
         # for the 2x2 opponent monitors.
@@ -97,30 +97,20 @@ class StatusWindow(pygame.Surface):
             x_start = (idx % 2) * (player_monitor_width + 1) + 1
             y_start = 230 + (idx / 2) * (player_monitor_height + 1)
             
-            # Black background
-            self.fill((0, 0, 0), pygame.Rect(x_start, y_start, 
-                                             player_monitor_width,
-                                             player_monitor_height))
-            
             try:
-                player_id = player_ids[idx]
-                player_game_snapshot = self.game.listener.player_game_snapshots[player_id]
+                player_id = player_ids[idx] if idx < len(player_ids) else None 
+                player_game_snapshot = self.game.listener.player_game_snapshots.get(player_id)
                 
-                # Paint deceased players gray ... others coloured
-                color = self.font_color if player_id in self.game.listener.players else (50, 50, 50)
+                player_alive = player_id in self.game.listener.players
                 
                 player_name = player_list_for_display.get(player_id)
                 
                 monitor = GameMonitor((player_monitor_width, player_monitor_height))
-                monitor.render_game(player_game_snapshot)
-                self.blit(monitor, (x_start, y_start))
+                monitor.render_game(player_game_snapshot, 
+                                    player_name, 
+                                    player_alive=player_alive)
                 
-                t_img = player_list_font.render(player_name, 1, color)
-                t_pos = t_img.get_rect()
-                t_pos.left = x_start + 5
-                t_pos.top = y_start
-                
-                self.blit(t_img, t_pos)
+                self.blit(monitor, (x_start, y_start))                
             except IndexError:
                 # Not enough players present yet ... never mind.
                 # Show a black box if we're expecting someone

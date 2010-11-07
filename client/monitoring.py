@@ -44,29 +44,33 @@ class GameMonitor(pygame.Surface):
     def __init__(self, dimensions):
         self.dimensions = dimensions
         pygame.Surface.__init__(self, self.dimensions)
+        self.font = pygame.font.Font('jack_type.ttf', 14)
         
-    def render_game(self, compressed_game):
+    def render_game(self, compressed_game, player_name, player_alive):
         """
         Expects a string representing a game in compressed
         format, as resulting from the 'compress' function above.
         """
+
+        self.fill((0, 0, 0))
         
-        game_as_array = decompress(compressed_game)
+        if compressed_game:
+            game_as_array = decompress(compressed_game)
         
-        if not game_as_array:
-            # Ignore (probably just empty)
-            return
-        
-        nr_columns, nr_rows = len(game_as_array[0]), len(game_as_array) 
-        pixel_width = self.get_width()/float(nr_columns)
-        pixel_height = self.get_height()/float(nr_rows)
-        
-        for row_index, row in enumerate(game_as_array):
-            y_offset = row_index * pixel_height
-            for index, entry in enumerate(row):
-                if entry:
-                    x_offset = index * pixel_width
-                    self.fill((100, 100, 255), pygame.Rect(x_offset, y_offset, pixel_width, pixel_height)) 
+            nr_columns, nr_rows = len(game_as_array[0]), len(game_as_array) 
+            pixel_width = self.get_width()/float(nr_columns)
+            pixel_height = self.get_height()/float(nr_rows)
+            
+            for row_index, row in enumerate(game_as_array):
+                y_offset = row_index * pixel_height
+                for index, entry in enumerate(row):
+                    if entry:
+                        x_offset = index * pixel_width
+                        self.fill((100, 100, 255), pygame.Rect(x_offset, y_offset, pixel_width, pixel_height)) 
+
+        color = player_alive and (0, 255, 0) or (100, 100, 100) 
+        name_img = self.font.render(player_name, 1, color)
+        self.blit(name_img, (5, 5))
         
 if __name__ == '__main__':
     from gamemodel import Game
