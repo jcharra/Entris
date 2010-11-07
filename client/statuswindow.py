@@ -125,6 +125,9 @@ class StatusWindow(pygame.Surface):
         text_pos.centery = 20
         self.blit(text_img, text_pos)
 
+        if not self.game.piece_queue:
+            return
+
         next_piece = self.game.piece_queue[0]
         next_piece_width = len(next_piece[0])
         

@@ -3,6 +3,7 @@ import time
 from collections import deque
 import random
 import logging
+import itertools
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -26,9 +27,24 @@ def next_id(not_available):
         pid = random.randint(1000, 100000)
     return str(pid)
 
+def random_part_index_generator(duck_probability=0.1):
+    """
+    Generator to produce an infinite sequence of
+    indexes, ranging from 0 to 7.
+    0 is returned with the probability specified by the
+    argument 'duck_probability', the other parts share
+    the remaining probability evenly.
+    """
+    
+    while True:
+        rand = random.random()
+        if rand <= duck_probability:
+            yield 0
+        else:
+            yield random.randint(1, 7)
    
 class Game():
-    def __init__(self, game_id, size):
+    def __init__(self, game_id, size, duck_probability=0.01):
         self.game_id = game_id
         
         self.player_penalties = {}
@@ -42,6 +58,13 @@ class Game():
         # to snapshots of their game states,
         # in compressed format
         self.game_snapshot = {}
+        
+        # The 'global' part index generator that all players
+        # receive their parts from.
+        self.part_index_generator = random_part_index_generator(duck_probability)
+        
+        # A mapping from player id to part index generator.
+        self.part_generator_for_player_id = {}
         
         # Game starts when all players have logged on
         self.started = False
@@ -63,6 +86,15 @@ class Game():
         if self.is_full():
             for pid in self.player_penalties:
                 self.last_get_timestamp[pid] = time.time()
+                
+            # Now produce as many identical generators from the 
+            # 'master' as there are players in the game.
+            spawned_part_generators = itertools.tee(self.part_index_generator, self.size)
+            
+            # Grab a part generator for each player
+            self.part_generator_for_player_id = dict(zip(self.player_penalties.keys(),
+                                                         spawned_part_generators))
+                
             self.started = True
             
         #print "Added player %s to game %s" % (player_id, self.game_id)
@@ -112,7 +144,14 @@ class Game():
                  for pid, name in self.screen_names.items()
                  if pid in self.player_penalties]
         return ",".join(items)
-        
+    
+    def get_parts(self, player_id):
+        """
+        Returns the next 10 parts for the requesting player
+        """
+        part_gen = self.part_generator_for_player_id[player_id]
+        return [part_gen.next() for _ in range(10)]
+            
     def get_penalties(self, player_id):
         stamp = time.time()
         
@@ -177,7 +216,10 @@ class NewGameRequest(webapp.RequestHandler):
             
         size = int(self.request.get('size', default_value="2"))
         game_id = next_id(games)
-        game = Game(game_id, size)
+        
+        duck_prob = float(self.request.get('duck_prob', default_value="0.01"))
+        
+        game = Game(game_id, size, duck_prob)
         games[game_id] = game
         
         self.response.out.write(game_id)
@@ -245,6 +287,15 @@ class UpdateRequest(webapp.RequestHandler):
         game.store_snapshot(player_id, snapshot)
             
         self.response.out.write("#%s#" % pen)
+
+class PartRequest(webapp.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        game_id = self.request.get('game_id')
+        game = games[game_id]
+        player_id = self.request.get('player_id')
+        parts = game.get_parts(player_id)
+        self.response.out.write(",".join(str(part_index) for part_index in parts))
         
 class UnregistrationRequest(webapp.RequestHandler):
     def post(self):
@@ -282,6 +333,7 @@ URLS = [('/', MainPage),
         ('/new', NewGameRequest),
         ('/register', RegistrationRequest),
         ('/receive', UpdateRequest),
+        ('/getparts', PartRequest),
         ('/sendlines', SendRequest),
         ('/unregister', UnregistrationRequest),
         ('/status', StatusReport),

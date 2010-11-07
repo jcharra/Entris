@@ -3,7 +3,7 @@ import logging
 import random
 
 from collections import deque
-from part import Part, DUCK_INDICES, random_part_generator
+from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
 from events import LinesDeletedEvent, QuackEvent
 from configscreen import ConfigScreen
 from networking import ServerEventListener, create_new_game, ConnectionFailed
@@ -36,7 +36,8 @@ def create_game(config):
         game.listener = None
     else:
         if game_type == ConfigScreen.CREATE:
-            game_id = create_new_game(size=config['game_info'])
+            game_id = create_new_game(size=config['game_info'],
+                                      duck_probability=config['duck_prob'])
         elif game_type == ConfigScreen.JOIN:
             game_id = config['game_info']
         else:
@@ -390,7 +391,20 @@ class MultiplayerGame(Game):
                            and len(self.listener.players) == 1)
         
         return self.victorious    
-                    
+    
+    def init_piece_queue(self):
+        """
+        Get new pieces from the server
+        """
+        self.piece_queue = deque()#self.listener.get_next_parts()
+    
+    def get_next_piece(self):
+        if len(self.piece_queue) < 10:
+            next_parts = [get_part_for_index(idx)
+                          for idx in self.listener.get_next_parts()]
+            self.piece_queue.extend(next_parts)
+        return self.piece_queue.popleft()
+                       
     def regurgitate(self, number_of_lines):
         """
         Puts a regurgitation event into the queue

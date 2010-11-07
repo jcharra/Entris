@@ -63,6 +63,18 @@ class ServerTest(unittest.TestCase):
         
         assert resp == "Player %s deleted" % self.player_ids[0], "Unregistration said %s" % resp
     
+    def test_part_generator(self):
+        self.conn.request("GET", "/getparts?game_id=%s&player_id=%s" % (self.game_id, self.player_ids[0]))
+        parts = [int(x) for x in self.conn.getresponse().read().split(",")]
+        
+        assert len(parts) == 10, "Not enough parts received"
+        assert [p for p in parts if p in range(0, 8)] == parts, "Bad range %s" % parts
+    
+        # Get the other player's parts ... they must be identical!
+        self.conn.request("GET", "/getparts?game_id=%s&player_id=%s" % (self.game_id, self.player_ids[1]))
+        parts_two = [int(x) for x in self.conn.getresponse().read().split(",")]
+        assert parts == parts_two, "Unfair game, received different parts: %s, %s" % (parts, parts_two)
+    
     def test_timeout(self):
         # Provoke timeout
         time.sleep(6)
@@ -73,7 +85,7 @@ class ServerTest(unittest.TestCase):
         
         self.conn.request("GET", "/status?game_id=%s" % self.game_id)
         resp = self.conn.getresponse().read()
-        players = resp.split('|')[2]
+        players = resp.split('|')[1]
         assert players == '', "Status fetching fails: %s" % resp
 
 

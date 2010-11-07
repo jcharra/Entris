@@ -15,10 +15,10 @@ GAME_SERVER = 'entrisserver.appspot.com'
 class ConnectionFailed(Exception):
     pass
 
-def create_new_game(size, connection_str=GAME_SERVER):
+def create_new_game(size, duck_probability=0.01, connection_str=GAME_SERVER):
     conn = httplib.HTTPConnection(connection_str)
     try:
-        conn.request("GET", "/new?size=%s" % size)
+        conn.request("GET", "/new?size=%s&duck_prob=%s" % (size, duck_probability))
         game_id = int(conn.getresponse().read())
         return game_id
     except socket.error:
@@ -180,6 +180,17 @@ class ServerEventListener(object):
                 
         except (httplib.CannotSendRequest, Exception), exc:
             print "Errors while sending lines to the server (%s)" % exc
+
+    def get_next_parts(self):
+        params = urllib.urlencode({'game_id': self.game_id,
+                                   'player_id': self.player_id})
+        self.connection.request("GET", "/getparts?%s" % params)
+        try:
+            parts = [int(x) for x in self.connection.getresponse().read().split(",")]
+            return parts
+        except:
+            return []
+            
 
     def notify(self, event):
         if isinstance(event, LinesDeletedEvent):

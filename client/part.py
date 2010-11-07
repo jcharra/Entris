@@ -25,48 +25,38 @@ DUCK_INDICES = ((0, 1, 1, 1, 0, 0),
                 (1, 1, 1, 1, 1, 1),
                 (0, 1, 1, 1, 1, 0))
 
-PART_TEMPLATES = {LONG_INDICES: 1, 
-                  T_INDICES: 1, 
-                  HOOK1_INDICES: 1, 
-                  HOOK2_INDICES: 1, 
-                  BLOCK_INDICES: 1,
-                  FLASH1_INDICES: 1,
-                  FLASH2_INDICES: 1,
-                  DUCK_INDICES: 1}
+# List of all parts available.
+# The duck must be at index 0, as this is 
+# associated with the duck probability.
+PARTS = (DUCK_INDICES,
+         LONG_INDICES, 
+         T_INDICES,     
+         HOOK1_INDICES, 
+         HOOK2_INDICES, 
+         BLOCK_INDICES,
+         FLASH1_INDICES,
+         FLASH2_INDICES)
+
+def get_part_for_index(idx):
+    return PARTS[idx]
+
+def random_part_index_generator(duck_probability=0.1):
+    while True:
+        rand = random.random()
+        if rand <= duck_probability:
+            yield 0
+        else:
+            yield random.randint(1, len(PARTS) - 1)
 
 def random_part_generator(duck_probability=0.1):
     """
-    Builds a dictionary mapping the pieces to their normed
-    probabilities and yields pieces accordingly.
-    
-    The duck probability is handled specially and can be
-    passed in as a parameter.
+    Yields parts randomly. The duck has a predefined probability
+    that can be passed in as a parameter. The remaining probability
+    is divided evenly among the other parts. 
     """
-    prob_dict = PART_TEMPLATES
-    prob_dict[DUCK_INDICES] = duck_probability
-    for k in prob_dict:
-        if k != DUCK_INDICES:
-            prob_dict[k] = (1 - duck_probability)/(len(prob_dict.keys()) - 1)
-        
-    total = float(sum(prob_dict.values()))
-    normed_dict = dict((k, v/total) for k, v in prob_dict.items())
-    
-    # probability sum must not be too far from 1.0
-    assert abs(sum(normed_dict.values()) - 1.0) < 0.01
-    
+    index_gen = random_part_index_generator(duck_probability)
     while True:
-        current_sum = 0
-        rfloat = random.random()
-        for k in normed_dict:
-            current_sum += normed_dict[k]
-            if current_sum >= rfloat:
-                yield k
-                break
-        else:
-            # If, due to rounding errors, we have a total probability
-            # sum < 1 and our random number is greater than this sum,
-            # we need an appropriate fallback.
-            yield max(normed_dict, key=lambda x: normed_dict[x])
+        yield PARTS[index_gen.next()]
     
 class Part(object):
     def __init__(self, template, row_width):
