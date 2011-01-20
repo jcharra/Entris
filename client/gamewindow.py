@@ -17,10 +17,7 @@ class GameWindow(pygame.Surface):
     responsible for, and controls how keyboard input is propagated to it.
     """
     
-    def __init__(self, config, game_model):
-        dimensions = config['screen_size']
-        game_dimensions = config['game_size']
-        
+    def __init__(self, dimensions, game_model):
         self.dimensions = dimensions
         
         # The most important object for this instance:
@@ -28,8 +25,8 @@ class GameWindow(pygame.Surface):
         self.game_model = game_model
         
         # cell width and height are floats
-        self.cell_width = dimensions[0]/float(game_dimensions[0])
-        self.cell_height = dimensions[1]/float(game_dimensions[1])
+        self.cell_width = dimensions[0]/float(self.game_model.dimensions[0])
+        self.cell_height = dimensions[1]/float(self.game_model.dimensions[1])
         
         pygame.Surface.__init__(self, self.dimensions)
 

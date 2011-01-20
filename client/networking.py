@@ -117,10 +117,9 @@ class ServerEventListener(object):
             players, size, snapshots = status_string.split('|')[1:4]        
             self.game_size = int(size)
         except Exception, err:
-            print ("Status fetching for game %s failed."
-                   " Status string was %s"
+            print ("Status fetching for game %s failed.\n"
                    " Error msg: %s" 
-                   % (self.game_id, status_string, err))
+                   % (self.game_id, err))
 
         try:
             # parse players/snapshots dictionaries

@@ -30,16 +30,16 @@ def create_game(config):
     game_type = config['game_type']
     game_dimensions = config['game_size']
     
-    if game_type == ConfigScreen.SINGLE:
+    if game_type == 'single':
         game = SingleplayerGame(game_dimensions, part_generator)
         game.started = True
         game.listener = None
     else:
-        if game_type == ConfigScreen.CREATE:
-            game_id = create_new_game(size=config['game_info'],
+        if game_type == 'create':
+            game_id = create_new_game(size=config['player_number'],
                                       duck_probability=config['duck_prob'])
-        elif game_type == ConfigScreen.JOIN:
-            game_id = config['game_info']
+        elif game_type == 'join':
+            game_id = config['game_id']
         else:
             raise KeyError("Unknown game type: %s" % game_type)
 
