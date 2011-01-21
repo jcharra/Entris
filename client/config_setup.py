@@ -5,11 +5,21 @@ Module for Entris-specific config
 
 from statewindows import GatewayWindow, InputWindow, MenuWindow, MenuItem
 
+GAME_TYPE_OPTIONS = (('single', 'Single player'),
+                     ('create', 'Create online game'),
+                     ('join', 'Join online game'))
+    
+GAME_SIZE_OPTIONS = [((x, y), "%s x %s" % (x, y))
+                      for (x, y) in ((20, 25), (25, 32), (30, 40))]
+DUCK_PROB_OPTIONS = [(i/100.0, "%i" % i) 
+                     for i in range(11)]
+PLAYER_NUMBER_OPTIONS = [(i, "%i players" % i) 
+                         for i in range(2, 6)]
+
+
+
 def build_config(dimensions):
-    start = GatewayWindow(dimensions)
-    start.add_items(MenuItem('game_type', (('single', 'Single player game'),
-                                           ('create', 'Create online game'),
-                                           ('join', 'Join online game'),)))
+    start = GatewayWindow(dimensions, 'game_type', GAME_TYPE_OPTIONS)
                    
     name = InputWindow(dimensions, 
                        'Enter player name:', 
@@ -18,20 +28,23 @@ def build_config(dimensions):
                        10)
     
     single_game_config = MenuWindow(dimensions)
-    single_game_config.add_items(MenuItem('game_size', (((20, 25), '20 x 25'),
-                                                       ((25, 30), '25 x 30'))),
-                                 MenuItem('duck_prob', ((0.0, '0%'),
-                                                        (0.05, '5%'))))
+    single_game_config.add_items(MenuItem('Game size', 
+                                          'game_size', 
+                                          GAME_SIZE_OPTIONS),
+                                 MenuItem('Duck probability', 
+                                          'duck_prob', 
+                                          DUCK_PROB_OPTIONS))
     
     multi_game_config = MenuWindow(dimensions)
-    multi_game_config.add_items(MenuItem('game_size', (((20, 25), '20 x 25'),
-                                                       ((25, 30), '25 x 30'))),
-                                MenuItem('player_number', ((2, "2 players"),
-                                                           (3, "3 players"),
-                                                           (4, "4 players"),
-                                                           (5, "5 players"))),  
-                                MenuItem('duck_prob', ((0.0, '0%'),
-                                                        (0.05, '5%'))))
+    multi_game_config.add_items(MenuItem('Game size', 
+                                         'game_size', 
+                                         GAME_SIZE_OPTIONS),
+                                MenuItem('Players', 
+                                         'player_number', 
+                                         PLAYER_NUMBER_OPTIONS),  
+                                MenuItem('Duck probability', 
+                                         'duck_prob', 
+                                         DUCK_PROB_OPTIONS))
                    
     #lobby = None # still missing
                    
