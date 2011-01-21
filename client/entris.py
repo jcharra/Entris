@@ -7,7 +7,8 @@ import sys
 from gamemodel import create_game
 from gamewindow import GameWindow
 
-SCREEN_DIMENSIONS = (450, 600)
+GAME_WINDOW_DIMENSIONS = (450, 600) 
+SCREEN_DIMENSIONS = (800, 600)
 
 def main():
     main_screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
@@ -54,10 +55,10 @@ def main():
                 else:
                     sys.exit(0)
     
-        config = start_window.collect_dicts()
+        config = start_window.collect_values_along_chosen_path()
         
         game = create_game(config)
-        game_window = GameWindow(dimensions=SCREEN_DIMENSIONS, 
+        game_window = GameWindow(dimensions=GAME_WINDOW_DIMENSIONS, 
                                  game_model=game)
         
         while not game.aborted:

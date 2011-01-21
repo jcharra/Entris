@@ -44,7 +44,7 @@ class StateWindow(pygame.Surface):
     def as_dict(self):
         return {}
     
-    def collect_dicts(self):
+    def collect_values_along_chosen_path(self):
         d = {}
         node = self
         while node:
@@ -103,7 +103,7 @@ class MenuWindow(StateWindow):
         else:
             StateWindow.handle_keypress(self, key)
     
-    def selected_item(self):
+    def get_selected_item(self):
         return self.items[self.selected_index]
         
     def render(self, screen):
@@ -123,7 +123,12 @@ class MenuWindow(StateWindow):
                             rect=pygame.Rect(0, y_offset, 
                                              self.get_width(), item_height)) 
 
-            text_img = self.font.render(item.get_text(), 1, self.font_color)
+            text = item.get_text()
+            if len(item.value_items) > 1:
+                # indicate changeability
+                text = "<    %s    >" % text
+                
+            text_img = self.font.render(text, 1, self.font_color)
             text_pos = text_img.get_rect()
             text_pos.centerx = self.get_rect().centerx
             text_pos.centery = y_offset + item_height / 2
@@ -140,12 +145,14 @@ class MenuWindow(StateWindow):
         screen.blit(title_img, title_pos)
     
     def render_subtitle(self, screen):
-        if not hasattr(self.selected_item(), 'subtitle'):
+        """
+        Renders a hint for the currently selected item.
+        """
+        if (not hasattr(self.get_selected_item(), 'subtitle')
+            or not self.get_selected_item().subtitle):
             return
-    
-        subtitle_img = self.font.render(self.selected_item().subtitle, 
-                                        1, 
-                                        self.hint_color)
+        
+        subtitle_img = self.font.render(self.get_selected_item().subtitle, 1, self.hint_color)
         subtitle_pos = subtitle_img.get_rect()
         subtitle_pos.centerx = self.get_rect().centerx
         subtitle_pos.centery = self.get_height() - 40
@@ -171,6 +178,8 @@ class GatewayWindow(MenuWindow):
         self.gateway_mapping = {}
         
     def add_item_with_successor(self, option, caption, succ):
+        # Make it a menu item without a key of its own and
+        # only one option/caption pair (i.e. unchangeable).
         item = MenuItem('', ((option, caption), ))
         self.items.append(item)
         
@@ -296,7 +305,7 @@ if __name__ == '__main__':
             currentWindow.aborted = False
             currentWindow = currentWindow.predecessor
     
-    print "Total config is: %s" % start.collect_dicts()
+    print "Total config is: %s" % start.collect_values_along_chosen_path()
     
     
     
