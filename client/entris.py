@@ -7,16 +7,14 @@ import sys
 from gamemodel import create_game
 from gamewindow import GameWindow
 
-GAME_WINDOW_DIMENSIONS = (450, 600) 
-SCREEN_DIMENSIONS = (800, 600)
+from config import GAME_WINDOW_DIMENSIONS, SCREEN_DIMENSIONS, build_menu
 
 def main():
     main_screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
     
     clock = pygame.time.Clock()
     
-    from config_setup import build_config
-    start_window = build_config(SCREEN_DIMENSIONS)
+    start_window = build_menu(SCREEN_DIMENSIONS)
     currentConfigWindow = start_window
 
     # Outer infinite loop: Always return to config

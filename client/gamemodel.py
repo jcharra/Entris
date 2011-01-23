@@ -5,7 +5,6 @@ import random
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
 from events import LinesDeletedEvent, QuackEvent
-from configscreen import ConfigScreen
 from networking import ServerEventListener, create_new_game, ConnectionFailed
 
 logger = logging.getLogger("gamemodel")

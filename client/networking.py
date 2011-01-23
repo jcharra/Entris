@@ -7,10 +7,7 @@ import threading
 from collections import deque 
 from events import LinesDeletedEvent
 from monitoring import compress
-
-# TODO: Put this into a config file
-#GAME_SERVER = 'localhost:8090'
-GAME_SERVER = 'entrisserver.appspot.com'
+from config import GAME_SERVER
 
 class ConnectionFailed(Exception):
     pass

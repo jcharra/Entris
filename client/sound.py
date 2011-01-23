@@ -3,7 +3,6 @@ import pygame
 pygame.mixer.init()
 
 import os
-import random
 from events import QuackEvent, LinesDeletedEvent
 
 SOUND_DIR = 'sound'
