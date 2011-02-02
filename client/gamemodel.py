@@ -5,7 +5,7 @@ import random
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
 from events import LinesDeletedEvent, QuackEvent
-from networking import ServerEventListener, create_new_game, ConnectionFailed
+from networking import ServerEventListener, initialize_network_game, ConnectionFailed
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -27,7 +27,7 @@ def create_game(config):
     # as an argument.
     part_generator = random_part_generator(config['duck_prob'])
     game_type = config['game_type']
-    game_dimensions = config['game_size']
+    game_dimensions = config['dimensions']
     
     if game_type == 'single':
         game = SingleplayerGame(game_dimensions, part_generator)
@@ -35,8 +35,9 @@ def create_game(config):
         game.listener = None
     else:
         if game_type == 'create':
-            game_id = create_new_game(size=config['player_number'],
-                                      duck_probability=config['duck_prob'])
+            config['dimensions'] = "x".join(str(d) for d in config['dimensions'])
+            game_info = initialize_network_game(config)
+            game_id = game_info['game_id']
         elif game_type == 'join':
             game_id = config['game_id']
         else:
@@ -395,7 +396,7 @@ class MultiplayerGame(Game):
         """
         Get new pieces from the server
         """
-        self.piece_queue = deque()#self.listener.get_next_parts()
+        self.piece_queue = self.listener.get_next_parts()
     
     def get_next_piece(self):
         if len(self.piece_queue) < 10:

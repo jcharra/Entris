@@ -3,6 +3,7 @@ import httplib
 import urllib
 import socket
 import time
+import json
 import threading
 from collections import deque 
 from events import LinesDeletedEvent
@@ -12,18 +13,20 @@ from config import GAME_SERVER
 class ConnectionFailed(Exception):
     pass
 
-def create_new_game(size, duck_probability=0.01, connection_str=GAME_SERVER):
-    conn = httplib.HTTPConnection(connection_str)
-    try:
-        conn.request("GET", "/new?size=%s&duck_prob=%s" % (size, duck_probability))
-        game_id = int(conn.getresponse().read())
-        return game_id
-    except socket.error:
-        pass
-
 POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                 "Accept": "text/plain"}
-    
+
+def initialize_network_game(config):
+    conn = httplib.HTTPConnection(GAME_SERVER)
+    try:
+        params = params = urllib.urlencode(config)
+        conn.request("POST", "/new" , params, POST_HEADERS)
+        response = conn.getresponse().read()
+        return json.loads(response)
+    except socket.error:
+        pass
+        
+   
 class ServerEventListener(object):
     """
     Class responsible for all interaction with the game server,
@@ -99,34 +102,22 @@ class ServerEventListener(object):
 
     def ask_for_start_permission(self):    
         self.connection.request("GET", "/status?game_id=%s" % self.game_id)
-        status = self.connection.getresponse().read()
-        # TODO: Parse status report and put it into a GameStatus object
-        return status.startswith("Started: True")
+        game_info = json.loads(self.connection.getresponse().read())
+        return game_info['started']
     
-    # FIXME: This method is pretty ugly and cumbersome
     def update_players_list(self):
-        snapshots = players = ''
-        
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
-            status_string = self.connection.getresponse().read()
-            # TODO: Parse status report and put it into a GameStatus object
-            players, size, snapshots = status_string.split('|')[1:4]        
-            self.game_size = int(size)
+            game_info = json.loads(self.connection.getresponse().read())
+            self.game_size = game_info['size']
         except Exception, err:
             print ("Status fetching for game %s failed.\n"
                    " Error msg: %s" 
                    % (self.game_id, err))
 
         try:
-            # parse players/snapshots dictionaries
-            snapshot_list = snapshots.split(';')
-            players_list = players.split(",")
-
-            self.players = dict(elem.split(':') 
-                                for elem in players_list)
-            self.player_game_snapshots = dict(elem.split(':') 
-                                              for elem in snapshot_list)
+            self.players = game_info['screen_names']
+            self.player_game_snapshots = game_info['snapshots']
         except ValueError, msg:
             print "Error occurred: %s" % msg
             self.players = {}
@@ -148,7 +139,8 @@ class ServerEventListener(object):
         
         try:
             self.connection.request("GET", "/receive?%s" % params)
-            lines_received = int(self.connection.getresponse().read().strip('#'))
+            penalty_info = json.loads(self.connection.getresponse().read())
+            lines_received = penalty_info['penalty']
             
             if lines_received:
                 print "Ouch! Received %s lines" % lines_received
@@ -166,9 +158,9 @@ class ServerEventListener(object):
                                        'player_id': self.player_id,
                                        'num_lines': lines})
             self.connection.request("POST", "/sendlines", params, POST_HEADERS)
-            response = self.connection.getresponse().read()
+            response = json.loads(self.connection.getresponse().read())
             
-            if response.startswith('Added a penalty'):
+            if response["info"].startswith("Added"):
                 # If it worked, remove the element from the deque
                 self.lines_to_send.popleft()
             else:
@@ -182,8 +174,7 @@ class ServerEventListener(object):
                                    'player_id': self.player_id})
         try:
             self.connection.request("GET", "/getparts?%s" % params)
-            parts = [int(x) for x in self.connection.getresponse().read().split(",")]
-            return parts
+            return json.loads(self.connection.getresponse().read())
         except:
             # This may fail from time to time ...
             return []
@@ -208,7 +199,8 @@ class ServerEventListener(object):
                 self.connection = httplib.HTTPConnection(connection_str)
                 self.connection.request("GET", "/register?game_id=%s&screen_name=%s" 
                                         % (self.game_id, self.screen_name))
-                self.player_id = int(self.connection.getresponse().read())
+                response = json.loads(self.connection.getresponse().read())
+                self.player_id = response['player_id']
 
                 return
             except Exception, exc:

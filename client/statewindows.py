@@ -7,6 +7,7 @@ from pygame.locals import (K_ESCAPE, K_RETURN, K_RIGHT,
 DEFAULT_FONT = pygame.font.Font('jack_type.ttf', 18) 
 DEFAULT_FONT_COLOR = (0, 255, 0) 
 DEFAULT_HINT_COLOR = (200, 0, 0)
+DEFAULT_SELECTION_BAR_COLOR = (150, 150, 150)
 
 class StateWindow(pygame.Surface):
     def __init__(self, dimensions):
@@ -20,6 +21,7 @@ class StateWindow(pygame.Surface):
         self.font = DEFAULT_FONT
         self.font_color = DEFAULT_FONT_COLOR
         self.hint_color = DEFAULT_HINT_COLOR
+        self.selection_bar_color = DEFAULT_SELECTION_BAR_COLOR
                 
     def render(self):
         raise NotImplementedError()
@@ -119,7 +121,7 @@ class MenuWindow(StateWindow):
             y_offset = top_item_offset + idx * item_height
             
             if idx == self.selected_index:
-                screen.fill((150, 150, 150), 
+                screen.fill(self.selection_bar_color, 
                             rect=pygame.Rect(0, y_offset, 
                                              self.get_width(), item_height)) 
 
@@ -224,7 +226,7 @@ class InputWindow(StateWindow):
         screen.fill((0, 0, 0))
         
         # Render text
-        text_img = self.font.render(self.text, 1, self.font_color)
+        text_img = self.font.render(self.text, 1, self.hint_color)
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
         text_pos.centery = self.get_height()/3
