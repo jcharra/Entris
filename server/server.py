@@ -4,6 +4,7 @@ from collections import deque
 import random
 import logging
 import itertools
+import json 
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -42,6 +43,15 @@ def random_part_index_generator(duck_probability=0.1):
             yield 0
         else:
             yield random.randint(1, 7)
+  
+def json_error(msg):
+    return json.dumps({'error': msg})
+
+def json_info(msg):
+    return json.dumps({'info': msg})
+   
+def json_dumps(obj):
+    return json.dumps(obj, separators=(',', ':'))
    
 class Game():
     def __init__(self, game_id, size, duck_probability=0.01):
@@ -70,6 +80,18 @@ class Game():
         self.started = False
         
         self.creation_timestamp = time.time()
+    
+    def as_short_dict(self):
+        return {'game_id': self.game_id,
+                'screen_names': self.screen_names,
+                'size': self.size,
+                'started': self.started,
+                'timestamp': self.creation_timestamp}
+    
+    def as_long_dict(self):
+        d = self.as_short_dict()
+        d['snapshots'] = self.game_snapshot
+        return d
     
     def add_player(self, screen_name):
         if self.started or len(self.player_penalties) >= self.size:
@@ -211,7 +233,7 @@ class NewGameRequest(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         
         if len(games) >= MAX_GAME_NUMBER:
-            self.response.out.write('Server full!')
+            self.response.out.write(json_error('Server full!'))
             return
             
         size = int(self.request.get('size', default_value="2"))
@@ -222,14 +244,14 @@ class NewGameRequest(webapp.RequestHandler):
         game = Game(game_id, size, duck_prob)
         games[game_id] = game
         
-        self.response.out.write(game_id)
+        self.response.out.write(json_dumps({'game_id': game_id}))
 
 class ListGamesRequest(webapp.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        game_repr = ["%s,%s,%s" % (game_id, game.size, game.player_penalties.keys())
-                     for (game_id, game) in games.items()]
-        self.response.out.write("|".join(game_repr))
+        games_list = [game.as_short_dict() for game in games.values()]
+        games_json = json_dumps(games_list)
+        self.response.out.write(games_json)
 
 class RegistrationRequest(webapp.RequestHandler):
     def get(self):
@@ -243,9 +265,9 @@ class RegistrationRequest(webapp.RequestHandler):
         try:
             # fetch a player id for the newbie
             pid = game.add_player(screen_name)
-            self.response.out.write(pid)
+            self.response.out.write(json.dumps({'player_id': pid}))
         except GameFull, msg:
-            self.response.out.write(msg)
+            self.response.out.write(json_error(msg))
 
 class StatusReport(webapp.RequestHandler):
     def get(self):
@@ -259,15 +281,11 @@ class StatusReport(webapp.RequestHandler):
         game = games.get(game_id)
         
         if game is None:
-            self.response.out.write('No game with ID %s' % game_id)
+            error_msg = json_error('No game with ID %s' % game_id)
+            self.response.out.write(error_msg)
         else:    
-            messages = []
-            messages.append("Started: %s" % game.started)
-            messages.append(game.get_names())
-            messages.append(str(game.size))
-            messages.append(game.get_snapshots())
-            
-            self.response.out.write("|".join(messages))
+            game_json = json_dumps(game.as_long_dict())
+            self.response.out.write(game_json)
     
 class UpdateRequest(webapp.RequestHandler):
     def get(self):
@@ -286,7 +304,7 @@ class UpdateRequest(webapp.RequestHandler):
         snapshot = self.request.get('game_snapshot', '')
         game.store_snapshot(player_id, snapshot)
             
-        self.response.out.write("#%s#" % pen)
+        self.response.out.write(json_dumps({'penalty': pen}))
 
 class PartRequest(webapp.RequestHandler):
     def get(self):
@@ -295,7 +313,7 @@ class PartRequest(webapp.RequestHandler):
         game = games[game_id]
         player_id = self.request.get('player_id')
         parts = game.get_parts(player_id)
-        self.response.out.write(",".join(str(part_index) for part_index in parts))
+        self.response.out.write(json_dumps(parts))
         
 class UnregistrationRequest(webapp.RequestHandler):
     def post(self):
@@ -306,9 +324,9 @@ class UnregistrationRequest(webapp.RequestHandler):
         
         if player_id in game.player_penalties:
             game.delete_player(player_id)
-            self.response.out.write("Player %s deleted" % player_id)
+            self.response.out.write(json_info("Player %s deleted" % player_id))
         else:
-            self.response.out.write("Player %s not found" % player_id)
+            self.response.out.write(json_info("Player %s not found" % player_id))
 
 class SendRequest(webapp.RequestHandler):
     def post(self):
@@ -321,13 +339,14 @@ class SendRequest(webapp.RequestHandler):
             if player_key != player_id:
                 game.player_penalties[player_key].append(int(num_lines))
 
-        self.response.out.write("Added a penalty of %s to all but %s" % 
-                                (num_lines, player_id))
+        info = json_info("Added a penalty of %s to all but %s" 
+                         % (num_lines, player_id))
+        self.response.out.write(info)
 
 class MainPage(webapp.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('Welcome to the Entris server - hosted by Google Web Engine')
+        self.response.out.write('Welcome to the Entris server - hosted by Google App Engine')
 
 URLS = [('/', MainPage),
         ('/new', NewGameRequest),
