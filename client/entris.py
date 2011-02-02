@@ -7,7 +7,8 @@ import sys
 from gamemodel import create_game
 from gamewindow import GameWindow
 
-from config import GAME_WINDOW_DIMENSIONS, SCREEN_DIMENSIONS, build_menu
+from config import GAME_WINDOW_DIMENSIONS, SCREEN_DIMENSIONS
+from menu import build_menu
 
 def main():
     main_screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
