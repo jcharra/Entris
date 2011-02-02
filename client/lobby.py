@@ -47,7 +47,12 @@ class Lobby(StateWindow):
             connection = httplib.HTTPConnection(GAME_SERVER)
             connection.request("GET", "/list")
             data = connection.getresponse().read()
-            games = json.loads(data)
+            
+            # Read response and filter out started 
+            # games (as we cannot join those anymore)
+            games = [game for game in json.loads(data)
+                     if not game['started']]
+            
             self.game_configs = sorted(games, key=lambda g: g['timestamp'])
         except Exception, msg:
             logging.warn("Error connecting to server: %s" % msg)

@@ -13,13 +13,16 @@ class InfoPanel(pygame.Surface):
         pygame.Surface.__init__(self, dimensions)
         
         self.game = game
-        self.block_size = self.get_width()/10
+        self.block_size = self.get_width()/15
         
         self.font_color = (0, 200, 0)
         self.font = pygame.font.Font('jack_type.ttf', 18)
         
         # Keep track of players that have been in the game
         self.players_at_game_start = {}
+        
+        # Mapping from player ids to monitor instances
+        self.monitors = {}
         
     def render_base(self):
         # background
@@ -41,41 +44,9 @@ class InfoPanel(pygame.Surface):
             # are alive at the beginning
             self.players_at_game_start = self.game.listener.players
 
-    def render_game_id(self):
-        text_img = self.font.render("Game %s" % self.game.listener.game_id, 1, (127, 127, 0))
-        text_pos = text_img.get_rect()
-        text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 200
-        self.blit(text_img, text_pos)
-            
-    def render_score(self):
-        text_img = self.font.render("Score", 1, self.font_color)
-        text_pos = text_img.get_rect()
-        text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 300
-        self.blit(text_img, text_pos)
-
-        text_img = self.font.render("%09i" % self.game.score, 1, self.font_color)
-        text_pos = text_img.get_rect()
-        text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 370
-        self.blit(text_img, text_pos)
-    
-    def render_level(self):
-        text_img = self.font.render("Level %s" % self.game.level, 
-                                    1, self.font_color)
-        text_pos = text_img.get_rect()
-        text_pos.centerx = self.get_rect().centerx
-        text_pos.centery = 250
-        self.blit(text_img, text_pos)
-    
     def render_players(self):
         """
         Renders the players and their respective game monitors.
-        TODO: Refactor me!
-              Avoid instantiating a Monitor object on each call
-              => implement a monitors dictionary, keeping the player
-              ids as keys and monitor objects as values.
         """
         
         # Iterate over all players that started the game.
@@ -111,13 +82,48 @@ class InfoPanel(pygame.Surface):
             player_alive = opp_id in self.game.listener.players
             player_name = player_list_for_display.get(opp_id)
             
-            monitor = GameMonitor((player_monitor_width, player_monitor_height))
+            if opp_id not in self.monitors:
+                # We need a new GameMonitor instance
+                # for this opponent id. 
+                self.monitors[opp_id] = GameMonitor((player_monitor_width, 
+                                                     player_monitor_height))
+            monitor = self.monitors[opp_id]
+                
             monitor.render_game(player_game_snapshot, 
                                 player_name, 
                                 player_alive=player_alive)
             
             self.blit(monitor, (x_start, y_start))                
+    
+
+    def render_game_id(self):
+        text_img = self.font.render("Game %s" % self.game.listener.game_id, 1, (127, 127, 0))
+        text_pos = text_img.get_rect()
+        text_pos.centerx = self.get_rect().centerx
+        text_pos.centery = 200
+        self.blit(text_img, text_pos)
             
+    def render_score(self):
+        text_img = self.font.render("Score", 1, self.font_color)
+        text_pos = text_img.get_rect()
+        text_pos.centerx = self.get_rect().centerx
+        text_pos.centery = 300
+        self.blit(text_img, text_pos)
+
+        text_img = self.font.render("%09i" % self.game.score, 1, self.font_color)
+        text_pos = text_img.get_rect()
+        text_pos.centerx = self.get_rect().centerx
+        text_pos.centery = 370
+        self.blit(text_img, text_pos)
+    
+    def render_level(self):
+        text_img = self.font.render("Level %s" % self.game.level, 
+                                    1, self.font_color)
+        text_pos = text_img.get_rect()
+        text_pos.centerx = self.get_rect().centerx
+        text_pos.centery = 250
+        self.blit(text_img, text_pos)
+    
     def render_preview(self):
         text_img = self.font.render("Next", 1, self.font_color)
         text_pos = text_img.get_rect()
