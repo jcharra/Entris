@@ -396,7 +396,7 @@ class MultiplayerGame(Game):
         """
         Get new pieces from the server
         """
-        self.piece_queue = self.listener.get_next_parts()
+        self.piece_queue = deque()
     
     def get_next_piece(self):
         if len(self.piece_queue) < 10:

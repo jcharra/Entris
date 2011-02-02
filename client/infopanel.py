@@ -100,7 +100,7 @@ class InfoPanel(pygame.Surface):
         
         # Filter out our own id ... no need to monitor ourselves
         opponent_ids = [pid for pid in player_list_for_display.keys() 
-                        if int(pid) != self.game.listener.player_id]
+                        if pid != self.game.listener.player_id]
          
         for idx in range(number_of_monitors):
             x_start = (idx % 2) * (player_monitor_width + 2) + 2

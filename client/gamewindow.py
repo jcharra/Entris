@@ -14,7 +14,7 @@ logger.addHandler(handler)
 class GameWindow(pygame.Surface):
     """
     The game window is the visualization of the game instance it is
-    responsible for, and controls how keyboard input is propagated to it.
+    responsible for.
     """
     
     def __init__(self, dimensions, game_model):
