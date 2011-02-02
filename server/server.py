@@ -142,7 +142,7 @@ class Game():
         try:
             del self.player_penalties[player_id]
             del self.screen_names[player_id]
-        except KeyError, err:
+        except KeyError:
             logger.info("Player %s cannot be deleted (not found)" % player_id)
         
     def adjust_name(self, desired_name):
@@ -220,20 +220,19 @@ class Game():
                 pass
                     
 
-GAME_TIMEOUT_IN_SECONDS = 600
-def delete_finished_games():
+GAME_TIMEOUT_IN_SECONDS = 180
+def delete_finished_and_empty_games():
     removable = []
     now = time.time()
     
     for game_id, game in games.items():
-        if game.started:
-            if not game.is_alive():
-                # Started but no more players in it => remove it
-                removable.append(game_id)
-        else:
-            # Not started but too old => remove it
-            if now - game.creation_timestamp > GAME_TIMEOUT_IN_SECONDS:
-                removable.append(game_id)
+        if not game.is_alive():
+            # Started but no more players in it => remove it
+            removable.append(game_id)
+
+        # Not started but too old => remove it            
+        if not game.started and now - game.creation_timestamp > GAME_TIMEOUT_IN_SECONDS:
+            removable.append(game_id)
             
     for game_id in removable:
         del games[game_id]
@@ -242,11 +241,9 @@ MAX_GAME_NUMBER = 100
 class NewGameRequest(webapp.RequestHandler):
     def post(self):
         
-        logger.warn("GOT SOMETHING")
-        
         # To avoid a separate job periodically deleting old (i.e. finished)
         # games, do the cleaning up here.
-        delete_finished_games()
+        delete_finished_and_empty_games()
         
         self.response.headers['Content-Type'] = 'application/json'
         
@@ -290,8 +287,8 @@ class RegistrationRequest(webapp.RequestHandler):
             # fetch a player id for the newbie
             pid = game.add_player(screen_name)
             self.response.out.write(json.dumps({'player_id': pid}))
-        except GameFull, msg:
-            self.response.out.write(json_error(msg))
+        except GameFull:
+            self.response.out.write(json_error('Game already full'))
 
 class StatusReport(webapp.RequestHandler):
     def get(self):
