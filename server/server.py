@@ -54,14 +54,23 @@ def json_dumps(obj):
     return json.dumps(obj, separators=(',', ':'))
    
 class Game():
-    def __init__(self, game_id, size, duck_probability=0.01):
-        self.game_id = game_id
-        
-        self.player_penalties = {}
-        self.screen_names = {}
-        self.size = max(min(size, 6), 2)
+    def __init__(self, config):
+        self.game_id = config['game_id']
+        self.size = max(min(config['size'], 6), 2)
+        self.dimensions = config['dimensions']
+        self.duck_prob = config['duck_prob']
         
         self.seconds_timeout_to_unregister = 5
+        
+        # A mapping from player ids to numbers indicating
+        # pending penalty lines
+        self.player_penalties = {}
+        
+        # A mapping from player ids to screen names
+        self.screen_names = {}
+        
+        # A mapping from player ids to timestamps 
+        # representing their last GET request for punishment.
         self.last_get_timestamp = {}
         
         # A mapping from the game's player ids
@@ -71,7 +80,7 @@ class Game():
         
         # The 'global' part index generator that all players
         # receive their parts from.
-        self.part_index_generator = random_part_index_generator(duck_probability)
+        self.part_index_generator = random_part_index_generator(self.duck_prob)
         
         # A mapping from player id to part index generator.
         self.part_generator_for_player_id = {}
@@ -81,11 +90,18 @@ class Game():
         
         self.creation_timestamp = time.time()
     
+    @property
+    def free_slots(self):
+        return self.size - len(self.screen_names)
+    
     def as_short_dict(self):
         return {'game_id': self.game_id,
                 'screen_names': self.screen_names,
                 'size': self.size,
+                'dimensions': self.dimensions,
+                'duck_prob': self.duck_prob,
                 'started': self.started,
+                'free_slots': self.free_slots,
                 'timestamp': self.creation_timestamp}
     
     def as_long_dict(self):
@@ -224,38 +240,46 @@ def delete_finished_games():
 
 MAX_GAME_NUMBER = 100
 class NewGameRequest(webapp.RequestHandler):
-    def get(self):
+    def post(self):
+        
+        logger.warn("GOT SOMETHING")
         
         # To avoid a separate job periodically deleting old (i.e. finished)
         # games, do the cleaning up here.
         delete_finished_games()
         
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         
         if len(games) >= MAX_GAME_NUMBER:
             self.response.out.write(json_error('Server full!'))
             return
             
         size = int(self.request.get('size', default_value="2"))
+        duck_prob = float(self.request.get('duck_prob', default_value="0.01"))
+        dimensions_str = self.request.get('dimensions', default_value="20x25")
+        dimensions = [int(x) for x in dimensions_str.split('x')]
         game_id = next_id(games)
         
-        duck_prob = float(self.request.get('duck_prob', default_value="0.01"))
+        game_config = dict(game_id=game_id,
+                           size=size,
+                           dimensions=dimensions,
+                           duck_prob=duck_prob)
         
-        game = Game(game_id, size, duck_prob)
+        game = Game(game_config)
         games[game_id] = game
         
-        self.response.out.write(json_dumps({'game_id': game_id}))
+        self.response.out.write(json_dumps(game_config))
 
 class ListGamesRequest(webapp.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         games_list = [game.as_short_dict() for game in games.values()]
         games_json = json_dumps(games_list)
         self.response.out.write(games_json)
 
 class RegistrationRequest(webapp.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         game_id = self.request.get('game_id')
         
         # screen name may not be given
@@ -275,7 +299,7 @@ class StatusReport(webapp.RequestHandler):
         Returns the status of the game as a string
         <started>|<player_ids>|<player_penalties>|<game_size>
         """
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         game_id = self.request.get('game_id')
 
         game = games.get(game_id)
@@ -289,7 +313,7 @@ class StatusReport(webapp.RequestHandler):
     
 class UpdateRequest(webapp.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         game_id = self.request.get('game_id')
         game = games[game_id]
         player_id = self.request.get('player_id')
@@ -308,7 +332,7 @@ class UpdateRequest(webapp.RequestHandler):
 
 class PartRequest(webapp.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         game_id = self.request.get('game_id')
         game = games[game_id]
         player_id = self.request.get('player_id')
@@ -317,7 +341,7 @@ class PartRequest(webapp.RequestHandler):
         
 class UnregistrationRequest(webapp.RequestHandler):
     def post(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'application/json'
         game_id = self.request.get('game_id')
         game = games[game_id]
         player_id = self.request.get('player_id')
