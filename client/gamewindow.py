@@ -84,7 +84,9 @@ class GameWindow(pygame.Surface):
                 self.render_game_over_screen()
         elif self.game_model.victorious:
             self.render_winner_screen()
-        elif not self.game_model.started:            
+        elif self.game_model.get_errors():
+            self.render_error_screen(self.game_model.get_errors())
+        elif not self.game_model.started:          
             self.render_waiting_screen()
         else:
             self.render_game()
@@ -142,7 +144,15 @@ class GameWindow(pygame.Surface):
         plural_s = 's' if missing != 1 else ''
         text = "Waiting for %s more player%s ..." % (missing, plural_s)
         self.message_layover.render_message(text, fontsize=14, fade=False)        
-    
+
+    def render_error_screen(self, msg):
+        """
+        For multiplayer games: We might be waiting for other players.
+        """
+        
+        text = "ERROR: %s" % msg
+        self.message_layover.render_message(text, fontsize=14, fade=False)        
+        
     def render_game_over_screen(self):
         """
         Game's over. Draw a layover telling the player about his failure.

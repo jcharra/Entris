@@ -1,10 +1,12 @@
 
 import httplib
 import urllib
-import socket
 import time
 import json
 import threading
+import logging
+import socket
+
 from collections import deque 
 from events import LinesDeletedEvent
 from monitoring import compress
@@ -18,14 +20,11 @@ POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
 
 def initialize_network_game(config):
     conn = httplib.HTTPConnection(GAME_SERVER)
-    try:
-        params = params = urllib.urlencode(config)
-        conn.request("POST", "/new" , params, POST_HEADERS)
-        response = conn.getresponse().read()
-        return json.loads(response)
-    except socket.error:
-        pass
-        
+    params = urllib.urlencode(config)
+    conn.request("POST", "/new" , params, POST_HEADERS)
+    response = conn.getresponse().read()
+    return json.loads(response)
+       
    
 class ServerEventListener(object):
     """
@@ -44,6 +43,8 @@ class ServerEventListener(object):
     to the server.
     """
 
+    CANNOT_CONNECT_MSG = "Cannot connect to server"
+
     def __init__(self, game, online_game_id, screen_name, host=GAME_SERVER):
         self.game = game
         self.game.add_observer(self)
@@ -60,16 +61,22 @@ class ServerEventListener(object):
         # default, will be reset after first status update
         self.game_size = 2
         
+        # Any error messages that are returned by our server
+        # will be stored here. Someone else must take care of
+        # displaying them somewhere.
+        self.error_msg = ""  
+        
         self.connection = None
         self.connect_to_game()
         
-        assert self.game_id, 'No game id provided'
-
     def listen(self):
-        self.updateThread = threading.Thread(target=self.synchronize)
-        self.updateThread.start()
+        if not self.connection:
+            self.error_msg = self.CANNOT_CONNECT_MSG
+        else:
+            self.updateThread = threading.Thread(target=self._synchronize)
+            self.updateThread.start()
 
-    def synchronize(self):
+    def _synchronize(self):
         while not self.game.aborted:
             self.update_players_list()
             time.sleep(1)
@@ -96,30 +103,38 @@ class ServerEventListener(object):
     def unregister_from_server(self):
         params = urllib.urlencode({'game_id': self.game_id,
                                    'player_id': self.player_id})
-        self.connection.request("POST", "/unregister", params, POST_HEADERS)
         
-        print self.connection.getresponse().read()
+        try:
+            self.connection.request("POST", 
+                                    "/unregister", 
+                                    params, 
+                                    POST_HEADERS)
+            logging.info(self.connection.getresponse().read()) 
+        except Exception:
+            # That's not too bad ...
+            logging.info("Unregistration failed")
+            pass            
 
-    def ask_for_start_permission(self):    
-        self.connection.request("GET", "/status?game_id=%s" % self.game_id)
-        game_info = json.loads(self.connection.getresponse().read())
-        return game_info['started']
-    
+    def ask_for_start_permission(self):
+        try:    
+            self.connection.request("GET", "/status?game_id=%s" % self.game_id)
+            game_info = json.loads(self.connection.getresponse().read())
+            return game_info['started']
+        except:
+            self.error_msg = self.CANNOT_CONNECT
+        
     def update_players_list(self):
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
             game_info = json.loads(self.connection.getresponse().read())
             self.game_size = game_info['size']
-        except Exception, err:
-            print ("Status fetching for game %s failed.\n"
-                   " Error msg: %s" 
-                   % (self.game_id, err))
+        except Exception:
+            self.error_msg = "Cannot fetch data from server"
 
         try:
             self.players = game_info['screen_names']
             self.player_game_snapshots = game_info['snapshots']
-        except ValueError, msg:
-            print "Error occurred: %s" % msg
+        except ValueError:
             self.players = {}
             self.player_game_snapshots = {}          
         
@@ -146,8 +161,11 @@ class ServerEventListener(object):
                 print "Ouch! Received %s lines" % lines_received
                 self.game.regurgitate(lines_received)
         except (httplib.CannotSendRequest, ValueError), err:
-            print "Getting lines failed: %s" % err
-                
+            # Not too bad ... but we must take care that we
+            # don't miss fetching our penalties for too long,
+            # otherwise we might get dismissed from the game.
+            logging.info("Getting lines failed: %s" % err)
+                            
     def send_lines(self):
         if not self.lines_to_send:
             return
@@ -167,7 +185,7 @@ class ServerEventListener(object):
                 raise httplib.CannotSendRequest('Sending failed with response %s' % response)
                 
         except (httplib.CannotSendRequest, Exception), exc:
-            print "Errors while sending lines to the server (%s)" % exc
+            logging.info("Errors while sending data to server (%s)" % exc)
 
     def get_next_parts(self):
         params = urllib.urlencode({'game_id': self.game_id,
@@ -189,7 +207,7 @@ class ServerEventListener(object):
     
     def get_number_of_players_missing(self):
         return self.game_size - len(self.players)
-        
+    
     def connect_to_game(self):
         connection_str = self.host
 
@@ -203,12 +221,13 @@ class ServerEventListener(object):
                 self.player_id = response['player_id']
 
                 return
-            except Exception, exc:
-                print "Connection/registration failed: %s" % exc
+            except (socket.error, Exception), exc:
+                logging.warn("Connection failed: %s" % exc)
+                self.connection = None
                 time.sleep(1)
                 attempts += 1
                 
-        raise ConnectionFailed("Could not register at %s" % connection_str)
+        self.error_msg = "Could not connect to server"
     
     
     

@@ -1,6 +1,7 @@
 
 import logging
 import random
+import socket
 
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
@@ -17,6 +18,12 @@ from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
 ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE'}
 
+def _create_singleplayer(game_dimensions, part_generator):
+    game = SingleplayerGame(game_dimensions, part_generator)
+    game.started = True
+    game.listener = None
+    return game
+
 def create_game(config):
     """
     Factory method to create a game based 
@@ -30,14 +37,22 @@ def create_game(config):
     game_dimensions = config['dimensions']
     
     if game_type == 'single':
-        game = SingleplayerGame(game_dimensions, part_generator)
-        game.started = True
-        game.listener = None
+        return _create_singleplayer(game_dimensions, part_generator)
     else:
         if game_type == 'create':
             config['dimensions'] = "x".join(str(d) for d in config['dimensions'])
-            game_info = initialize_network_game(config)
-            game_id = game_info['game_id']
+            
+            try:
+                game_info = initialize_network_game(config)
+                game_id = game_info['game_id']
+            except socket.error:
+                # This will cause the game id to be invalid,
+                # thus the multiplayer game instance will behave
+                # like when attempting to connect to a nonexistent
+                # game instance.
+                logging.warn("Server not available")
+                game_id = None
+                
         elif game_type == 'join':
             game_id = config['game_id']
         else:
@@ -49,17 +64,10 @@ def create_game(config):
         # signal from the server.
         game.started = False
         
-        try:
-            # Connect the game instance to the game server by adding 
-            # a server listener to it. 
-            game.listener = ServerEventListener(game,
-                                                online_game_id=game_id,
-                                                screen_name=config['screen_name'])
-            game.listener.listen()
-        except ConnectionFailed, msg:
-            # This game must be immediately aborted.
-            # Apparently it doesn't exist.
-            game.aborted = True
+        game.listener = ServerEventListener(game,
+                                            online_game_id=game_id,
+                                            screen_name=config['screen_name'])
+        game.listener.listen()
 
     return game
 
@@ -360,6 +368,9 @@ class Game(object):
     def add_observer(self, observer):
         self.observers.append(observer)
 
+    def get_errors(self):
+        return ""
+
     def __repr__(self):
         rows = []
         for i in range(self.row_nr):
@@ -431,6 +442,9 @@ class MultiplayerGame(Game):
         if penalty_is_fatal:
             # That was too much to swallow ... we're screwed
             self.handle_game_over()
+            
+    def get_errors(self):
+        return self.listener.error_msg if hasattr(self, 'listener') else ""
         
 class SingleplayerGame(Game):
     def __init__(self, dimensions, duck_probability=0):

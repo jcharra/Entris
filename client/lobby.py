@@ -10,6 +10,7 @@ from pygame.locals import K_r, K_RETURN, K_UP, K_DOWN
 class Lobby(StateWindow):
     
     column_headings = ("Grid size", "Duck probability", "Players", "Free slots")
+    DEFAULT_SUBTITLE = "Select a game to join - press 'R' to refresh list"
     
     def __init__(self, dimensions=SCREEN_DIMENSIONS):
         """
@@ -37,10 +38,11 @@ class Lobby(StateWindow):
         self.title_y_offset = self.row_height
         self.column_headings_y_offset = self.row_height*3
         self.game_list_y_offset = self.row_height*4
+        self.subtitle_y_offset = self.get_height() - self.row_height 
         
         self.game_configs = []
         self.selected_index = 0
-        self.get_game_data()
+        self.subtitle = self.DEFAULT_SUBTITLE
         
     def get_game_data(self):
         try:
@@ -54,13 +56,16 @@ class Lobby(StateWindow):
                      if not game['started']]
             
             self.game_configs = sorted(games, key=lambda g: g['timestamp'])
-        except Exception, msg:
-            logging.warn("Error connecting to server: %s" % msg)
+        except Exception:
+            self.subtitle = "Error connecting to server"
     
     def as_dict(self):
         return self.game_configs[self.selected_index]
     
     def handle_keypress(self, key):
+        # Any key will cause the default subtitle to reappear
+        self.subtitle = self.DEFAULT_SUBTITLE
+        
         if key == K_r:
             # Refresh game list
             self.get_game_data()
@@ -95,11 +100,20 @@ class Lobby(StateWindow):
         selection list, getting the corresponding data from the
         game instance.
         """
-        return ("x".join(str(dim) for dim in game["dimensions"]), # e.g. "20x25" 
-                "%i%%" % int(100*game["duck_prob"]),              # e.g. 6%
-                ",".join(game["screen_names"] or ("None yet",)),  # e.g. "joe, jack, bill"
-                game["free_slots"]                                # e.g. 3
-                )
+        
+        dims = "x".join(str(dim) for dim in game["dimensions"])
+        duckprob = "%i%%" % int(100*game["duck_prob"]) 
+        names = ",".join(game["screen_names"].values() or ("None yet",))
+        freeslots = game["free_slots"]
+         
+        return (dims, duckprob, names, freeslots)
+    
+    def render_subtitle(self, screen):
+        text_img = self.font.render(self.subtitle, 1, self.hint_color)
+        text_pos = text_img.get_rect()
+        text_pos.centerx = self.get_rect().centerx
+        text_pos.top = self.subtitle_y_offset
+        screen.blit(text_img, text_pos)    
     
     def render(self, screen):
         screen.fill((0, 0, 0))
@@ -116,6 +130,7 @@ class Lobby(StateWindow):
                         self.hint_color)
     
         self.render_selection_bar(screen)
+        self.render_subtitle(screen)
     
         for idx, game in enumerate(self.game_configs):
             items = self._repr_for_display(game)

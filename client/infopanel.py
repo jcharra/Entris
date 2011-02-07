@@ -97,7 +97,11 @@ class InfoPanel(pygame.Surface):
     
 
     def render_game_id(self):
-        text_img = self.font.render("Game %s" % self.game.listener.game_id, 1, (127, 127, 0))
+        gid = self.game.listener.game_id
+        if not gid:
+            return
+        
+        text_img = self.font.render("Game %s" % gid, 1, (127, 127, 0))
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
         text_pos.centery = 200
