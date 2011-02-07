@@ -4,7 +4,11 @@ from collections import deque
 import random
 import logging
 import itertools
-import json 
+
+try:
+    import json
+except ImportError:
+    import simplejson as json 
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
