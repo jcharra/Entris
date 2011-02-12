@@ -138,6 +138,9 @@ class ServerEventListener(object):
             self.players = {}
             self.player_game_snapshots = {}          
         
+        # If we get here, everything should be okay,
+        # so clear the error message
+        self.error_msg = ""
     
     def get_lines(self):
         """
