@@ -36,8 +36,8 @@ class GameWindow(pygame.Surface):
         # The threshold (in milliseconds) indicating that the next step is due
         self.drop_interval = 500
         
-        self.status_window = InfoPanel((350, 600), self.game_model)
-    
+        self.info_panel = InfoPanel((350, 600), self.game_model)
+        
         self.message_layover = TransparentLayover(self)
     
         self.last_frame_before_death_rendered = False
@@ -49,7 +49,7 @@ class GameWindow(pygame.Surface):
         self.sound_manager.play_background_music()
 
     def get_total_width(self):
-        return self.get_width() + self.status_window.get_width()
+        return self.get_width() + self.info_panel.get_width()
           
     def tear_down(self):
         self.sound_manager.stop_background_music()
@@ -64,7 +64,7 @@ class GameWindow(pygame.Surface):
         screen.blit(self, (0, 0))
 
         self.render_status_window()
-        screen.blit(self.status_window, (self.get_width(), 0))        
+        screen.blit(self.info_panel, (self.get_width(), 0))        
         
     def render_game_window(self):
         """
@@ -96,9 +96,9 @@ class GameWindow(pygame.Surface):
         Render the status window depending on game type.
         """
         if self.game_model.listener:
-            self.status_window.renderMultiPlayerScreen()
+            self.info_panel.renderMultiPlayerScreen()
         else:
-            self.status_window.renderSinglePlayerScreen()
+            self.info_panel.renderSinglePlayerScreen()
     
     def render_game(self):
         """

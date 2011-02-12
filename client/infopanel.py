@@ -51,6 +51,12 @@ class InfoPanel(pygame.Surface):
         Renders the players and their respective game monitors.
         """
         
+        # The server listener may not yet have established
+        # the connection to the server, thus we cannot know
+        # the game size yet. Abort in that case.
+        if self.game.listener.game_size is None:
+            return
+        
         # Iterate over all players that started the game.
         # If the game has not started, this list will be empty,
         # so use the list of players that are currently registered

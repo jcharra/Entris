@@ -58,8 +58,7 @@ class ServerEventListener(object):
         self.players = {}
         self.player_game_snapshots = {}
         
-        # default, will be reset after first status update
-        self.game_size = 2
+        self.game_size = None
         
         # Any error messages that are returned by our server
         # will be stored here. Someone else must take care of
@@ -121,7 +120,7 @@ class ServerEventListener(object):
             game_info = json.loads(self.connection.getresponse().read())
             return game_info['started']
         except:
-            self.error_msg = self.CANNOT_CONNECT
+            self.error_msg = self.CANNOT_CONNECT_MSG
         
     def update_players_list(self):
         try:
@@ -129,12 +128,13 @@ class ServerEventListener(object):
             game_info = json.loads(self.connection.getresponse().read())
             self.game_size = game_info['size']
         except Exception:
-            self.error_msg = "Cannot fetch data from server"
+            self.error_msg = "Cannot fetch game data from server"
+            return
 
         try:
             self.players = game_info['screen_names']
             self.player_game_snapshots = game_info['snapshots']
-        except ValueError:
+        except KeyError:
             self.players = {}
             self.player_game_snapshots = {}          
         
@@ -206,7 +206,9 @@ class ServerEventListener(object):
             pass
     
     def get_number_of_players_missing(self):
-        return self.game_size - len(self.players)
+        return (self.game_size - len(self.players)
+                if self.game_size is not None
+                else 0)
     
     def connect_to_game(self):
         connection_str = self.host

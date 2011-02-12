@@ -1,5 +1,6 @@
 
 import sys
+import math
 import pygame
 from part import random_part_generator
     
@@ -57,18 +58,20 @@ class GameMonitor(pygame.Surface):
         
         if compressed_game:
             game_as_array = decompress(compressed_game)
-        
-            nr_columns, nr_rows = len(game_as_array[0]), len(game_as_array) 
-            pixel_width = self.get_width()/float(nr_columns) + 1
-            pixel_height = self.get_height()/float(nr_rows) + 1
-            
+            nr_columns, nr_rows = len(game_as_array[0]), len(game_as_array)
+            pixel_width = self.get_width()/float(nr_columns)
+            pixel_height = self.get_height()/float(nr_rows)
+             
             for row_index, row in enumerate(game_as_array):
-                y_offset = row_index * pixel_height
                 for index, entry in enumerate(row):
                     if entry:
                         x_offset = index * pixel_width
+                        y_offset = row_index * pixel_height
+                        x_width = math.ceil((index+1) * pixel_width - x_offset)
+                        y_height = math.ceil((row_index+1) * pixel_height - y_offset)
+                                    
                         self.fill((100, 100, 255), 
-                                  pygame.Rect(x_offset, y_offset, pixel_width, pixel_height)) 
+                                  pygame.Rect(x_offset, y_offset, x_width, y_height)) 
 
         if player_name:
             color = player_alive and (0, 255, 0) or (100, 100, 100) 
@@ -104,6 +107,7 @@ if __name__ == '__main__':
     game.cells += [0, 0]
     game.cells += [(1, 1, 1)] * 9
     game.cells += [0]
+    game.cells += [(1, 1, 1)] * 10
     compressed = compress(game)
     
     pygame.init()
@@ -115,7 +119,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT: 
                 sys.exit()
                 
-        moni.render_game(compressed)
+        moni.render_game(compressed, 'eric', True)
         main_screen.blit(moni, (0, 0))
         pygame.display.update()
         
