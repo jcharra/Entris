@@ -7,13 +7,15 @@ class InfoPanel(pygame.Surface):
     The window on the right of the game screen showing
     the current score and the next piece.
     """
+
+    BLOCKS_WIDTH = 16
     
     def __init__(self, dimensions, game):
         self.dimensions = dimensions
         pygame.Surface.__init__(self, dimensions)
         
         self.game = game
-        self.block_size = self.get_width()/15
+        self.block_size = self.get_width()/self.BLOCKS_WIDTH
         
         self.font_color = (0, 200, 0)
         self.font = pygame.font.Font('jack_type.ttf', 18)
@@ -133,6 +135,7 @@ class InfoPanel(pygame.Surface):
         text_pos = text_img.get_rect()
         text_pos.centerx = self.get_rect().centerx
         text_pos.centery = 20
+        
         self.blit(text_img, text_pos)
 
         if not self.game.piece_queue:
@@ -141,7 +144,7 @@ class InfoPanel(pygame.Surface):
         next_piece = self.game.piece_queue[0]
         next_piece_width = len(next_piece[0])
         
-        x_offset = self.block_size * (5 - next_piece_width/2)
+        x_offset = self.block_size * (self.BLOCKS_WIDTH - next_piece_width) / 2
         y_offset = 50
         
         for row_index, row in enumerate(next_piece):
@@ -154,4 +157,5 @@ class InfoPanel(pygame.Surface):
                     
                 rect = pygame.Rect((x, y), (self.block_size, self.block_size))
                 self.fill((0, 255, 0), rect)
+        
         
