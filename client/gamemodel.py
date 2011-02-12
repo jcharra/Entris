@@ -150,6 +150,8 @@ class Game(object):
             if key == K_DOWN:
                 self.downward_accelerated = True
                 
+            # TODO: Implement sliding sideways on key pressed 
+                
         elif key in ROTATION_MAP:
             self.rotate_piece(ROTATION_MAP[key])
 
@@ -452,7 +454,7 @@ class SingleplayerGame(Game):
 
         self.score = 0
         self.level = 0
-        self.next_level_threshold = 20000
+        self.next_level_threshold = 10000
 
     def after_row_deletion(self, number_of_rows):
         self.add_score(number_of_rows)
@@ -466,7 +468,7 @@ class SingleplayerGame(Game):
         self.score += score_gain
         
         if self.score >= self.next_level_threshold:
-            self.next_level_threshold += 50000
+            self.next_level_threshold += 15000
             self.level += 1
             logger.warn("Next level reached")
 
