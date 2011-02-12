@@ -462,7 +462,7 @@ class SingleplayerGame(Game):
         """
         Increases the score. This ought to be refined a little.
         """
-        score_gain = (number_of_lines_cleared * 35) ** 2
+        score_gain = 2 ** (number_of_lines_cleared-1)  * 1235
         self.score += score_gain
         
         if self.score >= self.next_level_threshold:
