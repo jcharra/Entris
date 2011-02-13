@@ -1,6 +1,6 @@
 [Setup]
 AppName=Entris
-AppVersion=1.04
+AppVersion=2.00
 DefaultDirName={pf}\Entris
 DefaultGroupName=Entris
 UninstallDisplayIcon={app}\Entris.exe
