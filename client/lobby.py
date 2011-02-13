@@ -1,7 +1,11 @@
 
 import httplib
 import logging
-import json
+
+try:
+    import json
+except ImportError:
+    import simplejson as json 
 
 from statewindows import StateWindow
 from config import GAME_SERVER, SCREEN_DIMENSIONS, MAX_NUMBER_OF_GAMES

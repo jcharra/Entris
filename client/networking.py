@@ -2,10 +2,14 @@
 import httplib
 import urllib
 import time
-import json
 import threading
 import logging
 import socket
+
+try:
+    import json
+except ImportError:
+    import simplejson as json 
 
 from collections import deque 
 from events import LinesDeletedEvent
