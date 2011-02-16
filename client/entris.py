@@ -56,8 +56,6 @@ def main():
     
         config = start_window.collect_values_along_chosen_path()
         
-        print "Config is %s" % config
-        
         game = create_game(config)
         game_window = GameWindow(dimensions=GAME_WINDOW_DIMENSIONS, 
                                  game_model=game)
