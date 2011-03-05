@@ -14,9 +14,9 @@ handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
-from pygame.locals import K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
+from pygame.locals import K_UP, K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
-ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE'}
+ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE', K_UP: 'CLOCKWISE'}
 
 def _create_singleplayer(game_dimensions, part_generator):
     game = SingleplayerGame(game_dimensions, part_generator)
