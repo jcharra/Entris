@@ -18,7 +18,7 @@ class InfoPanel(pygame.Surface):
         self.block_size = self.get_width()/self.BLOCKS_WIDTH
         
         self.font_color = (0, 200, 0)
-        self.font = pygame.font.Font('jack_type.ttf', 18)
+        self.font = pygame.font.Font('jack_type.ttf', 20)
         
         # Keep track of players that have been in the game
         self.players_at_game_start = {}

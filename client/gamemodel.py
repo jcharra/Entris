@@ -6,7 +6,7 @@ import socket
 from collections import deque
 from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
 from events import LinesDeletedEvent, QuackEvent
-from networking import ServerEventListener, initialize_network_game, ConnectionFailed
+from networking import ServerEventListener, initialize_network_game
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -16,7 +16,7 @@ logger.addHandler(handler)
 
 from pygame.locals import K_UP, K_LEFT, K_RIGHT, K_DOWN, K_a, K_s, K_ESCAPE
 KEYMAP = {K_LEFT: 'WEST', K_RIGHT: 'EAST', K_DOWN: 'SOUTH'}
-ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE', K_UP: 'CLOCKWISE'}
+ROTATION_MAP = {K_a: 'COUNTERCLOCKWISE', K_s: 'CLOCKWISE', K_UP: 'COUNTERCLOCKWISE'}
 
 def _create_singleplayer(game_dimensions, part_generator):
     game = SingleplayerGame(game_dimensions, part_generator)
@@ -110,13 +110,20 @@ class Game(object):
         # piece, i.e. the time in ms between each step.
         self.drop_interval = 500
         
-        # Since the downward acceleration by the player is meant to be "continuous"
-        # (instead of having to press the "down" key again) we have to remember
-        # if we're already in accelerated mode.
-        self.downward_accelerated = False
+        # This represents the _moving_ speed, i.e. the time
+        # that must pass before the player can move his piece
+        # once again
+        self.moving_interval = 80
+        
+        # Pressed keys are remembered until released.
+        # There can only be one pressed key at a time.
+        self.pressed_key = None
         
         # The game model keeps track of the time that has passed
         self.clock = 0
+        
+        # For moving the piece there is a timer as well
+        self.move_clock = 0
         
     def init_direction_map(self):
         """
@@ -146,23 +153,18 @@ class Game(object):
         
         if key in KEYMAP:
             self.move_piece(KEYMAP[key])
-            
-            if key == K_DOWN:
-                self.downward_accelerated = True
-                
-            # TODO: Implement sliding sideways on key pressed 
-                
+            self.pressed_key = key                
         elif key in ROTATION_MAP:
             self.rotate_piece(ROTATION_MAP[key])
 
     def handle_keyrelease(self, key):
         """
-        Currently only the release of the "down" key is relevant,
-        as that will toggle the downward acceleration.
+        Release of a key is relevant only if it's the one that's
+        been stored as pressed before. 
         """
         
-        if key == K_DOWN:
-            self.downward_accelerated = False
+        if key == self.pressed_key:
+            self.pressed_key = None
       
     def tear_down(self):
         self.aborted = True
@@ -183,8 +185,14 @@ class Game(object):
         self.clock += passed_time
         threshold_reached, self.clock = divmod(self.clock, self.drop_interval)
 
-        if self.downward_accelerated:  
-            self.move_piece("SOUTH")
+        if self.pressed_key:
+            # Move piece according to user input:
+            # Accelerating downward is unrestricted, moving left and right
+            # is slowed down by the moving_interval variable.
+            self.move_clock += passed_time
+            move_allowed, self.move_clock = divmod(self.move_clock, self.moving_interval)
+            if move_allowed or self.pressed_key == K_DOWN:
+                self.move_piece(KEYMAP[self.pressed_key])
             
         if threshold_reached:
             self.take_one_step()
