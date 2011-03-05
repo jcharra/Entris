@@ -9,6 +9,8 @@ DEFAULT_FONT_COLOR = (0, 255, 0)
 DEFAULT_HINT_COLOR = (200, 0, 0)
 DEFAULT_SELECTION_BAR_COLOR = (150, 150, 150)
 
+from config import HEADING_GRAPHICS_FILE
+
 class StateWindow(pygame.Surface):
     def __init__(self, dimensions):
         pygame.Surface.__init__(self, dimensions)
@@ -23,8 +25,12 @@ class StateWindow(pygame.Surface):
         self.hint_color = DEFAULT_HINT_COLOR
         self.selection_bar_color = DEFAULT_SELECTION_BAR_COLOR
                 
-    def render(self):
-        raise NotImplementedError()
+        self.head_graphics = pygame.image.load(HEADING_GRAPHICS_FILE).convert()
+        self.head_offset = self.get_width()/2-self.head_graphics.get_width()/2
+                
+    def render(self, screen):
+        screen.fill((0, 0, 0))
+        screen.blit(self.head_graphics, (self.head_offset, 0))
     
     def handle_keypress(self, key):
         if key == K_ESCAPE:
@@ -55,7 +61,7 @@ class StateWindow(pygame.Surface):
         return d
 
 class MenuItem(object):
-    DEFAULT_SUBTITLE = """ESC: Back  ENTER: Next  ARROW KEYS: Select"""
+    DEFAULT_SUBTITLE = """ESC: Back  ENTER: Next  ARROW KEYS: Select/Modify"""
 
     def __init__(self, key, value_items, subtitle=None):
         self.key = key
@@ -109,7 +115,8 @@ class MenuWindow(StateWindow):
         return self.items[self.selected_index]
         
     def render(self, screen):
-        screen.fill((0, 0, 0))
+        StateWindow.render(self, screen)
+        
         item_height = min(60, self.get_height()/(len(self.items) + 5))
         total_menu_height = item_height * len(self.items)
         top_item_offset = (self.get_height() - total_menu_height) / 2
@@ -126,7 +133,7 @@ class MenuWindow(StateWindow):
                                              self.get_width(), item_height)) 
 
             text = item.get_text()
-            if len(item.value_items) > 1:
+            if len(item.value_items) > 1 and idx == self.selected_index:
                 # indicate changeability
                 text = "<    %s    >" % text
                 
@@ -223,7 +230,7 @@ class InputWindow(StateWindow):
         return {self.key: self.value}
         
     def render(self, screen):
-        screen.fill((0, 0, 0))
+        StateWindow.render(self, screen)
         
         # Render text
         text_img = self.font.render(self.text, 1, self.hint_color)
