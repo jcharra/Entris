@@ -10,6 +10,12 @@ DEFAULT_HINT_COLOR = (200, 0, 0)
 DEFAULT_SELECTION_BAR_COLOR = (150, 150, 150)
 
 from config import HEADING_GRAPHICS_FILE
+HEAD_GRAPHICS = None
+def get_head_graphics():
+    global HEAD_GRAPHICS
+    if HEAD_GRAPHICS is None:
+        HEAD_GRAPHICS = pygame.image.load(HEADING_GRAPHICS_FILE).convert()
+    return HEAD_GRAPHICS
 
 class StateWindow(pygame.Surface):
     def __init__(self, dimensions):
@@ -25,7 +31,7 @@ class StateWindow(pygame.Surface):
         self.hint_color = DEFAULT_HINT_COLOR
         self.selection_bar_color = DEFAULT_SELECTION_BAR_COLOR
                 
-        self.head_graphics = pygame.image.load(HEADING_GRAPHICS_FILE).convert()
+        self.head_graphics = get_head_graphics()
         self.head_offset = self.get_width()/2-self.head_graphics.get_width()/2
                 
     def render(self, screen):
