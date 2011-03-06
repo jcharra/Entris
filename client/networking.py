@@ -23,12 +23,21 @@ POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                 "Accept": "text/plain"}
 
 def initialize_network_game(config):
-    conn = httplib.HTTPConnection(GAME_SERVER)
-    params = urllib.urlencode(config)
-    conn.request("POST", "/new" , params, POST_HEADERS)
-    response = conn.getresponse().read()
-    return json.loads(response)
-       
+    attempt = 0
+    while attempt < 3:
+        try:
+            conn = httplib.HTTPConnection(GAME_SERVER)
+            params = urllib.urlencode(config)
+            conn.request("POST", "/new" , params, POST_HEADERS)
+            response = conn.getresponse().read()
+            return json.loads(response)
+        except Exception, msg:
+            logging.warn("Could not create game in attempt %s: %s" 
+                         % (attempt, msg))
+            attempt += 1
+            time.sleep(1)
+           
+    raise socket.error
    
 class ServerEventListener(object):
     """
