@@ -16,7 +16,7 @@ script = "entris.py"        # Starting .py or .pyw script
 dest_file = "Entris"        # Final name of .exe file
 dest_folder = "InnoSetup"   # Final folder to contain the executable, data files, etc.
 icon_file = "..\icon_black.ico"              # Icon file. Leave blank for the pygame icon.
-extra_data = ["sound", "README.rtf", "jack_type.ttf", "setup.iss"]  # Extra data to copy to the final folder
+extra_data = ["sound", "README.rtf", "jack_type.ttf", "setup.iss", "logo.bmp", "logo.png"]  # Extra data to copy to the final folder
 extra_modules = []           # Extra modules to be included in the .exe (leave empty if no extra modules)
 dll_excludes = []            # excluded dlls ["w9xpopen.exe", "msvcr71.dll"]
 

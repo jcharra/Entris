@@ -11,6 +11,8 @@ OutputDir=userdocs:Inno Setup Examples Output
 [Files]
 Source: "Entris.exe"; DestDir: "{app}"
 Source: "jack_type.ttf"; DestDir: "{app}"
+Source: "logo.bmp"; DestDir: "{app}"
+Source: "logo.png"; DestDir: "{app}"
 Source: "w9xpopen.exe"; DestDir: "{app}";
 Source: "README.rtf"; DestDir: "{app}"; Flags: isreadme
 Source: "sound\kraut.mid"; DestDir: "{app}\sound";
