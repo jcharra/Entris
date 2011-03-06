@@ -9,12 +9,15 @@ DEFAULT_FONT_COLOR = (0, 255, 0)
 DEFAULT_HINT_COLOR = (200, 0, 0)
 DEFAULT_SELECTION_BAR_COLOR = (150, 150, 150)
 
-from config import HEADING_GRAPHICS_FILE
 HEAD_GRAPHICS = None
 def get_head_graphics():
     global HEAD_GRAPHICS
-    if HEAD_GRAPHICS is None:
-        HEAD_GRAPHICS = pygame.image.load(HEADING_GRAPHICS_FILE).convert()
+    if not HEAD_GRAPHICS:
+        try:
+            HEAD_GRAPHICS = pygame.image.load('logo.png').convert()
+        except pygame.error:
+            HEAD_GRAPHICS = pygame.image.load('logo.bmp').convert()
+
     return HEAD_GRAPHICS
 
 class StateWindow(pygame.Surface):

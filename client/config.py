@@ -23,5 +23,3 @@ GAME_SERVER = 'entrisserver.appspot.com'
 
 GAME_WINDOW_DIMENSIONS = (450, 600) 
 SCREEN_DIMENSIONS = (800, 600)
-
-HEADING_GRAPHICS_FILE = 'logo.bmp'
