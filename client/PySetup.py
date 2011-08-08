@@ -27,7 +27,7 @@ lib_excludes = ["Tkinter", "tcl", "OpenGL", "Numeric", "numpy", "wxPython", "pyg
 copyright = "Copyright (C) 2010"
 author = "Johannes Charra"
 company = None
-version = "2.00"
+version = "2.02"
 
 ###################################################################
 ### Do not edit below here, unless you just want to experiment. ###
