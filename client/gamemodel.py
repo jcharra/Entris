@@ -165,6 +165,7 @@ class Game(object):
         
         if key == self.pressed_key:
             self.pressed_key = None
+            self.move_clock = 0
       
     def tear_down(self):
         self.aborted = True
@@ -191,6 +192,10 @@ class Game(object):
             # is slowed down by the moving_interval variable.
             self.move_clock += passed_time
             move_allowed, self.move_clock = divmod(self.move_clock, self.moving_interval)
+            
+            if move_allowed:
+                self.move_clock = 0
+            
             if move_allowed or self.pressed_key == K_DOWN:
                 self.move_piece(KEYMAP[self.pressed_key])
             
