@@ -25,17 +25,17 @@ Start Menu
 
 After typing your player name you may choose to
 
- o Start a single player game
- o Create a multiplayer game
- o Join a multiplayer game
+ - Start a single player game
+ - Create a multiplayer game
+ - Join a multiplayer game
 
 Single player game
 ==================
 
 To create a single player game you have to specify
 
- o the size of the game grid
- o the duck probability, ranging from 0% to 10%, i.e.
+ - the size of the game grid
+ - the duck probability, ranging from 0% to 10%, i.e.
    the probability that a duck appears. 0% will result 
    in a boring standard Tetris game, so you may want to 
    choose a higher probability here. 
@@ -45,9 +45,9 @@ Creating an online game
 
 When creating an online game you have to specify
 
- o the size of the game grid
- o the expected number of players involved
- o the duck probability, ranging from 0% to 10% (cf. single player
+ - the size of the game grid
+ - the expected number of players involved
+ - the duck probability, ranging from 0% to 10% (cf. single player
    game configuration)
 
 Joining an online game
