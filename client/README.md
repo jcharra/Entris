@@ -4,11 +4,15 @@ ENTRIS - an enhanced Tetris clone
 Developed in 2010 and 2011 by Johannes Charra using 
 Python and consequently excessive duck typing (pun intended).
 
-
 License
 =======
 
 Entris is published under the GNU General Public License.
+
+Requirements
+============
+
+You need to have Pygame installed (http://pygame.org) and a 32-bit Python. 
 
 
 Controls
