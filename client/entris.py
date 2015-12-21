@@ -1,5 +1,5 @@
 import pygame
-from pygame.locals import *
+
 pygame.init()
 
 import sys
@@ -28,9 +28,9 @@ def main():
                     sys.exit()
                     
                 if event.type == pygame.KEYDOWN:
-                    currentConfigWindow.handle_keypress(event.key)
+                    currentConfigWindow.handle_keypress(event)
                 elif event.type == pygame.KEYUP:
-                    currentConfigWindow.handle_keyrelease(event.key)
+                    currentConfigWindow.handle_keyrelease(event)
             
             currentConfigWindow.render(main_screen)
             pygame.display.update()
@@ -66,9 +66,9 @@ def main():
                     sys.exit()
                     
                 if event.type == pygame.KEYDOWN:
-                    game.handle_keypress(event.key)
+                    game.handle_keypress(event)
                 elif event.type == pygame.KEYUP:
-                    game.handle_keyrelease(event.key)
+                    game.handle_keyrelease(event)
             
             game_window.update_view(main_screen)
             pygame.display.update()

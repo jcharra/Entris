@@ -18,8 +18,5 @@ PLAYER_NUMBER_OPTIONS = [(i, "%i players" % i)
 
 MAX_NUMBER_OF_GAMES = 20
 
-GAME_SERVER = 'entrisserver.appspot.com'
-#GAME_SERVER = 'localhost:8090'
-
 GAME_WINDOW_DIMENSIONS = (450, 600) 
 SCREEN_DIMENSIONS = (800, 600)

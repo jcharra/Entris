@@ -1,6 +1,5 @@
 
 import httplib
-import logging
 
 try:
     import json
@@ -8,7 +7,7 @@ except ImportError:
     import simplejson as json 
 
 from statewindows import StateWindow
-from config import GAME_SERVER, SCREEN_DIMENSIONS, MAX_NUMBER_OF_GAMES
+from config import SCREEN_DIMENSIONS, MAX_NUMBER_OF_GAMES
 from pygame.locals import K_r, K_RETURN, K_UP, K_DOWN
 
 class Lobby(StateWindow):
@@ -34,7 +33,7 @@ class Lobby(StateWindow):
         """
         
         StateWindow.__init__(self, dimensions)
-               
+
         self.row_height = self.get_height()/float(MAX_NUMBER_OF_GAMES + 5)
         self.column_width = self.get_width()/float(len(self.column_headings))
         self.first_column_center = self.column_width/2.0
@@ -50,7 +49,7 @@ class Lobby(StateWindow):
         
     def get_game_data(self):
         try:
-            connection = httplib.HTTPConnection(GAME_SERVER)
+            connection = httplib.HTTPConnection(self.server)
             connection.request("GET", "/list")
             data = connection.getresponse().read()
             
@@ -65,8 +64,10 @@ class Lobby(StateWindow):
     
     def as_dict(self):
         return self.game_configs[self.selected_index]
-    
-    def handle_keypress(self, key):
+
+    def handle_keypress(self, event):
+        key = event.key
+
         # Any key will cause the default subtitle to reappear
         self.subtitle = self.DEFAULT_SUBTITLE
         
@@ -81,7 +82,7 @@ class Lobby(StateWindow):
                 direction = 1 if key == K_DOWN else -1
                 self.selected_index = (self.selected_index+direction) % len(self.game_configs)
         else:
-            StateWindow.handle_keypress(self, key)
+            StateWindow.handle_keypress(self, event)
     
     def render_row(self, screen, items, y_offset, color):
         for idx, item in enumerate(items):
