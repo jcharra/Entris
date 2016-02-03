@@ -24,10 +24,16 @@ POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
 
 
 def initialize_network_game(config):
-    attempt = 0
-    while attempt < 3:
+    attempt = 1
+    while attempt <= 3:
         try:
-            conn = httplib.HTTPConnection(config['server_name'])
+            server_address = config['server_name']
+            if ":" in server_address:
+                host, port = server_address.split(":")
+                conn = httplib.HTTPConnection(host, int(port))
+            else:
+                conn = httplib.HTTPConnection(server_address)
+
             params = urllib.urlencode(config)
             conn.request("POST", "/new", params, POST_HEADERS)
             response = conn.getresponse().read()
@@ -147,13 +153,17 @@ class ServerEventListener(object):
             return
 
         try:
-            self.players = game_info['screen_names']
-            self.player_game_snapshots = game_info['snapshots']
+            player_infos = game_info['screen_names']
+
+            for info in player_infos:
+                self.players[info['player_id']] = info['player_id']
+                self.player_game_snapshots[info['player_id']] = info['snapshot']
+
         except KeyError:
             self.players = {}
             self.player_game_snapshots = {}
 
-            # If we get here, everything should be okay,
+        # If we get here, everything should be okay,
         # so clear the error message
         self.error_msg = ""
 
@@ -229,12 +239,16 @@ class ServerEventListener(object):
                 else 0)
 
     def connect_to_game(self):
-        connection_str = self.host
-
         attempts = 0
         while attempts < 3:
             try:
-                self.connection = httplib.HTTPConnection(connection_str)
+                server_address = self.host
+                if ":" in server_address:
+                    host, port = server_address.split(":")
+                    self.connection = httplib.HTTPConnection(host, int(port))
+                else:
+                    self.connection = httplib.HTTPConnection(server_address)
+
                 self.connection.request("GET", "/register?game_id=%s&screen_name=%s"
                                         % (self.game_id, self.screen_name))
                 response = json.loads(self.connection.getresponse().read())

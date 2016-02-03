@@ -46,19 +46,27 @@ class Lobby(StateWindow):
         self.game_configs = []
         self.selected_index = 0
         self.subtitle = self.DEFAULT_SUBTITLE
+
+        self.server = None
         
     def get_game_data(self):
         try:
-            connection = httplib.HTTPConnection(self.server)
+            server_address = self.server or "localhost:8888"
+            if ":" in server_address:
+                host, port = server_address.split(":")
+                connection = httplib.HTTPConnection(host, int(port))
+            else:
+                connection = httplib.HTTPConnection(server_address)
+
             connection.request("GET", "/list")
             data = connection.getresponse().read()
             
             # Read response and filter out started 
             # games (as we cannot join those anymore)
-            games = [game for game in json.loads(data)
-                     if not game['started']]
-            
-            self.game_configs = sorted(games, key=lambda g: g['timestamp'])
+            games = {gid: game for gid, game in json.loads(data).iteritems()
+                     if not game['started']}
+
+            self.game_configs = sorted(games.values(), key=lambda g: g['game_id'])
         except Exception:
             self.subtitle = "Error connecting to server"
     
@@ -105,13 +113,14 @@ class Lobby(StateWindow):
         selection list, getting the corresponding data from the
         game instance.
         """
-        
-        dims = "x".join(str(dim) for dim in game["dimensions"])
-        duckprob = "%i%%" % int(100*game["duck_prob"]) 
-        names = ",".join(game["screen_names"].values() or ("None yet",))
-        freeslots = game["free_slots"]
-         
-        return (dims, duckprob, names, freeslots)
+
+        dims = "{}x{}".format(game["width"], game["height"])
+        duckprob = "%i%%" % int(100 * game["duck_prob"])
+        player_names = [p['player_id'] for p in game["screen_names"]]
+        names = ",".join(player_names or ("None yet",))
+        freeslots = int(game["size"]) - len(game["screen_names"])
+
+        return dims, duckprob, names, freeslots
     
     def render_subtitle(self, screen):
         text_img = self.font.render(self.subtitle, 1, self.hint_color)

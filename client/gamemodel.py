@@ -34,43 +34,46 @@ def create_game(config):
 
     # We need to pass a part generator with the appropriate probabilities.        
     # as an argument.
-    part_generator = random_part_generator(config['duck_prob'])
     game_type = config['game_type']
-    game_dimensions = config['dimensions']
+    part_generator = random_part_generator(config['duck_prob'])
 
     if game_type == 'single':
+        game_dimensions = config['dimensions']
+        part_generator = random_part_generator(config['duck_prob'])
         return _create_singleplayer(game_dimensions, part_generator)
+    elif game_type == 'create':
+        game_dimensions = config['dimensions']
+        config['dimensions'] = "x".join(str(d) for d in config['dimensions'])
+
+        try:
+            game_info = initialize_network_game(config)
+            game_id = game_info['game_id']
+        except socket.error:
+            # This will cause the game id to be invalid,
+            # thus the multiplayer game instance will behave
+            # like when attempting to connect to a nonexistent
+            # game instance.
+            logging.warn("Server not available")
+            game_id = None
+
+    elif game_type == 'join':
+        # TODO: Server sends widht/height info instead of dimensions. Unify globally!
+        game_dimensions = config["width"], config["height"]
+        game_id = config['game_id']
     else:
-        if game_type == 'create':
-            config['dimensions'] = "x".join(str(d) for d in config['dimensions'])
+        raise KeyError("Unknown game type: %s" % game_type)
 
-            try:
-                game_info = initialize_network_game(config)
-                game_id = game_info['game_id']
-            except socket.error:
-                # This will cause the game id to be invalid,
-                # thus the multiplayer game instance will behave
-                # like when attempting to connect to a nonexistent
-                # game instance.
-                logging.warn("Server not available")
-                game_id = None
+    game = MultiplayerGame(game_dimensions, part_generator)
 
-        elif game_type == 'join':
-            game_id = config['game_id']
-        else:
-            raise KeyError("Unknown game type: %s" % game_type)
+    # Game will be inactive until it gets the start
+    # signal from the server.
+    game.started = False
 
-        game = MultiplayerGame(game_dimensions, part_generator)
-
-        # Game will be inactive until it gets the start
-        # signal from the server.
-        game.started = False
-
-        game.listener = ServerEventListener(game,
-                                            online_game_id=game_id,
-                                            screen_name=config['screen_name'],
-                                            host=config['server_name'])
-        game.listener.listen()
+    game.listener = ServerEventListener(game,
+                                        online_game_id=game_id,
+                                        screen_name=config['screen_name'],
+                                        host=config.get('server_name', 'localhost:8888'))
+    game.listener.listen()
 
     return game
 
