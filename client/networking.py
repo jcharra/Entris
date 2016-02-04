@@ -78,6 +78,7 @@ class ServerEventListener(object):
         self.lines_to_send = deque()
         self.players = {}
         self.player_game_snapshots = {}
+        self.players_alive = 0
 
         self.game_size = None
 
@@ -155,9 +156,13 @@ class ServerEventListener(object):
         try:
             player_infos = game_info['screen_names']
 
+            count_alive = 0
             for info in player_infos:
                 self.players[info['player_id']] = info['player_id']
                 self.player_game_snapshots[info['player_id']] = info['snapshot']
+                if info["alive"]:
+                    count_alive += 1
+            self.players_alive = count_alive
 
         except KeyError:
             self.players = {}

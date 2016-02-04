@@ -166,14 +166,8 @@ class Game(object):
             self.rotate_piece(ROTATION_MAP[key])
 
     def handle_keyrelease(self, key):
-        """
-        Release of a key is relevant only if it's the one that's
-        been stored as pressed before. 
-        """
-
-        if key == self.pressed_key:
-            self.pressed_key = None
-            self.move_clock = 0
+        self.pressed_key = None
+        self.move_clock = 0
 
     def tear_down(self):
         self.aborted = True
@@ -422,7 +416,7 @@ class MultiplayerGame(Game):
         self.victorious = (not self.aborted
                            and not self.gameover
                            and self.started
-                           and len(self.listener.players) == 1)
+                           and self.listener.players_alive == 1)
 
         return self.victorious
 
