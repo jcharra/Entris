@@ -81,7 +81,7 @@ class ServerTest(unittest.TestCase):
 
         # This request should now cause all players to be kicked ...
         self.conn.request("GET", "/receive?game_id=%s&player_id=%s" % (self.game_id, self.player_ids[0]))
-        print self.conn.getresponse().read()
+        # print self.conn.getresponse().read()
         
         self.conn.request("GET", "/status?game_id=%s" % self.game_id)
         resp = self.conn.getresponse().read()

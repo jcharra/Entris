@@ -330,5 +330,3 @@ if __name__ == '__main__':
         elif currentWindow.aborted:
             currentWindow.aborted = False
             currentWindow = currentWindow.predecessor
-
-    print "Total config is: %s" % start.collect_values_along_chosen_path()

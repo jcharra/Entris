@@ -39,9 +39,8 @@ def initialize_network_game(config):
             conn.request("POST", "/new", params, POST_HEADERS)
             response = conn.getresponse().read()
             return json.loads(response)
-        except Exception, msg:
-            logging.warn("Could not create game in attempt %s: %s"
-                         % (attempt, msg))
+        except Exception:
+            logging.warn("Could not create game in attempt %s" % attempt)
             attempt += 1
             time.sleep(1)
 
@@ -192,13 +191,13 @@ class ServerEventListener(object):
             lines_received = penalty_info['penalty']
 
             if lines_received:
-                print "Ouch! Received %s lines" % lines_received
+                logging.info("Ouch! Received %s lines" % lines_received)
                 self.game.regurgitate(lines_received)
-        except (httplib.CannotSendRequest, ValueError), err:
+        except (httplib.CannotSendRequest, ValueError):
             # Not too bad ... but we must take care that we
             # don't miss fetching our penalties for too long,
             # otherwise we might get dismissed from the game.
-            logging.info("Getting lines failed: %s" % err)
+            logging.info("Getting lines failed: %s")
 
     def send_lines(self):
         if not self.lines_to_send:
@@ -218,8 +217,8 @@ class ServerEventListener(object):
             else:
                 raise httplib.CannotSendRequest('Sending failed with response %s' % response)
 
-        except (httplib.CannotSendRequest, Exception), exc:
-            logging.info("Errors while sending data to server (%s)" % exc)
+        except (httplib.CannotSendRequest, Exception):
+            logging.info("Errors while sending data to server")
 
     def get_next_parts(self):
         params = urllib.urlencode({'game_id': self.game_id,
@@ -233,7 +232,7 @@ class ServerEventListener(object):
 
     def notify(self, event):
         if isinstance(event, LinesDeletedEvent):
-            print "Been notified of %s lines" % event.number_of_lines
+            logging.info("Been notified of %s lines" % event.number_of_lines)
             self.lines_to_send.append(event.number_of_lines)
         else:
             # We don't care for other events
@@ -261,8 +260,8 @@ class ServerEventListener(object):
                 self.player_id = response['player_id']
 
                 return
-            except (socket.error, Exception), exc:
-                logging.warn("Connection failed: %s" % exc)
+            except (socket.error, Exception):
+                logging.warn("Connection failed")
                 self.connection = None
                 time.sleep(1)
                 attempts += 1

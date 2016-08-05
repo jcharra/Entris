@@ -6,7 +6,7 @@ Multiplayer Tetris clone featuring the evil duck. Challenge up to 4 friends to p
 Installation
 ============
 
-You need Python2 ad pygame to play. Install python, then type
+You need Python 2 and pygame to play. Install python, then type
 
 ```
 pip install pygame
