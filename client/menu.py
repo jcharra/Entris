@@ -1,3 +1,4 @@
+from networking import DEFAULT_SERVER
 from config import GAME_DIMENSIONS_OPTIONS, DUCK_PROB_OPTIONS, PLAYER_NUMBER_OPTIONS
 from statewindows import GatewayWindow, InputWindow, MenuWindow, MenuItem
 from lobby import Lobby
@@ -15,12 +16,14 @@ def build_menu(dimensions):
                                     'server_name',
                                     InputWindow.HOST,
                                     25)
+    server_input_menu.value = DEFAULT_SERVER
 
     lobby_server_input_menu = InputWindow(dimensions,
                                           'Enter server address and port (host:port)',
                                           'lobby_server_name',
                                           InputWindow.HOST,
                                           25)
+    lobby_server_input_menu.value = DEFAULT_SERVER
 
     game_type_selection = GatewayWindow(dimensions, 'game_type')
 
