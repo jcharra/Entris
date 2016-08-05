@@ -22,6 +22,7 @@ class ConnectionFailed(Exception):
 POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
                 "Accept": "text/plain"}
 
+DEFAULT_SERVER = "entris.charra.de"
 
 def initialize_network_game(config):
     attempt = 1

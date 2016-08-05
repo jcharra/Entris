@@ -5,7 +5,7 @@ from collections import deque
 
 from part import Part, DUCK_INDICES, random_part_generator, get_part_for_index
 from events import LinesDeletedEvent, QuackEvent
-from networking import ServerEventListener, initialize_network_game
+from networking import ServerEventListener, initialize_network_game, DEFAULT_SERVER
 
 logger = logging.getLogger("gamemodel")
 logger.setLevel(logging.DEBUG)
@@ -57,7 +57,7 @@ def create_game(config):
             game_id = None
 
     elif game_type == 'join':
-        # TODO: Server sends widht/height info instead of dimensions. Unify globally!
+        # TODO: Server sends width/height info instead of dimensions. Unify globally!
         game_dimensions = config["width"], config["height"]
         game_id = config['game_id']
     else:
@@ -72,7 +72,7 @@ def create_game(config):
     game.listener = ServerEventListener(game,
                                         online_game_id=game_id,
                                         screen_name=config['screen_name'],
-                                        host=config.get('server_name', 'localhost:8888'))
+                                        host=config.get('server_name', DEFAULT_SERVER))
     game.listener.listen()
 
     return game

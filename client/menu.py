@@ -16,6 +16,12 @@ def build_menu(dimensions):
                                     InputWindow.HOST,
                                     25)
 
+    lobby_server_input_menu = InputWindow(dimensions,
+                                          'Enter server address and port (host:port)',
+                                          'lobby_server_name',
+                                          InputWindow.HOST,
+                                          25)
+
     game_type_selection = GatewayWindow(dimensions, 'game_type')
 
     single_game_config = MenuWindow(dimensions)
@@ -43,8 +49,10 @@ def build_menu(dimensions):
     game_type_selection.add_item_with_successor('create',
                                                 'Create online game',
                                                 create_game_config)
-    game_type_selection.add_item_with_successor('join', 'Join online game', lobby)
+    game_type_selection.add_item_with_successor('join', 'Join online game', lobby_server_input_menu)
 
     create_game_config.set_successor(server_input_menu)
+    lobby_server_input_menu.set_successor(lobby)
+    lobby.server_info_func = lambda: lobby_server_input_menu.value
 
     return name_input_menu

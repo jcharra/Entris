@@ -9,6 +9,7 @@ except ImportError:
 from statewindows import StateWindow
 from config import SCREEN_DIMENSIONS, MAX_NUMBER_OF_GAMES
 from pygame.locals import K_r, K_RETURN, K_UP, K_DOWN
+from networking import DEFAULT_SERVER
 
 class Lobby(StateWindow):
     
@@ -47,11 +48,12 @@ class Lobby(StateWindow):
         self.selected_index = 0
         self.subtitle = self.DEFAULT_SUBTITLE
 
-        self.server = None
+        # Function that will yield the lobby's server address
+        self.server_info_func = lambda: None
         
     def get_game_data(self):
         try:
-            server_address = self.server or "localhost:8888"
+            server_address = self.server_info_func() or DEFAULT_SERVER
             if ":" in server_address:
                 host, port = server_address.split(":")
                 connection = httplib.HTTPConnection(host, int(port))
