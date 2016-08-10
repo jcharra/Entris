@@ -1,5 +1,8 @@
 
-import httplib
+try:
+	import httplib as http
+except ImportError:
+	import http.client as http
 
 try:
     import json
@@ -56,9 +59,9 @@ class Lobby(StateWindow):
             server_address = self.server_info_func() or DEFAULT_SERVER
             if ":" in server_address:
                 host, port = server_address.split(":")
-                connection = httplib.HTTPConnection(host, int(port))
+                connection = http.HTTPConnection(host, int(port))
             else:
-                connection = httplib.HTTPConnection(server_address)
+                connection = http.HTTPConnection(server_address)
 
             connection.request("GET", "/list")
             data = connection.getresponse().read()

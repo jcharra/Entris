@@ -226,8 +226,8 @@ class InputWindow(StateWindow):
 
     # maps ints to functions expecting a unicode character
     ALLOWED_CHARS_CHECK = {1: (lambda c: c in u"0123456789"),
-                           2: unicode.isalpha,
-                           3: unicode.isalnum,
+                           2: str.isalpha,
+                           3: str.isalnum,
                            4: (lambda c: c in u"abcdefghijklmnopqrstuvwxyz1234567890.-:")}
 
     def __init__(self, dimensions, text, key, type, maxlen):

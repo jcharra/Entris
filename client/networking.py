@@ -1,4 +1,3 @@
-import httplib
 import urllib
 import time
 import threading
@@ -10,6 +9,11 @@ try:
 except ImportError:
     import simplejson as json
 
+try:
+	import httplib as http
+except ImportError:
+	import http.client as http
+	
 from collections import deque
 from events import LinesDeletedEvent
 from monitoring import compress
@@ -31,9 +35,9 @@ def initialize_network_game(config):
             server_address = config['server_name']
             if ":" in server_address:
                 host, port = server_address.split(":")
-                conn = httplib.HTTPConnection(host, int(port))
+                conn = http.HTTPConnection(host, int(port))
             else:
-                conn = httplib.HTTPConnection(server_address)
+                conn = http.HTTPConnection(server_address)
 
             params = urllib.urlencode(config)
             conn.request("POST", "/new", params, POST_HEADERS)
@@ -193,7 +197,7 @@ class ServerEventListener(object):
             if lines_received:
                 logging.info("Ouch! Received %s lines" % lines_received)
                 self.game.regurgitate(lines_received)
-        except (httplib.CannotSendRequest, ValueError):
+        except (http.CannotSendRequest, ValueError):
             # Not too bad ... but we must take care that we
             # don't miss fetching our penalties for too long,
             # otherwise we might get dismissed from the game.
@@ -215,9 +219,9 @@ class ServerEventListener(object):
                 # If it worked, remove the element from the deque
                 self.lines_to_send.popleft()
             else:
-                raise httplib.CannotSendRequest('Sending failed with response %s' % response)
+                raise http.CannotSendRequest('Sending failed with response %s' % response)
 
-        except (httplib.CannotSendRequest, Exception):
+        except (http.CannotSendRequest, Exception):
             logging.info("Errors while sending data to server")
 
     def get_next_parts(self):
@@ -250,9 +254,9 @@ class ServerEventListener(object):
                 server_address = self.host
                 if ":" in server_address:
                     host, port = server_address.split(":")
-                    self.connection = httplib.HTTPConnection(host, int(port))
+                    self.connection = http.HTTPConnection(host, int(port))
                 else:
-                    self.connection = httplib.HTTPConnection(server_address)
+                    self.connection = http.HTTPConnection(server_address)
 
                 self.connection.request("GET", "/register?game_id=%s&screen_name=%s"
                                         % (self.game_id, self.screen_name))
