@@ -6,10 +6,10 @@ Multiplayer Tetris clone featuring the evil duck. Challenge up to 4 friends to p
 Installation
 ============
 
-You need Python and pygame to play. Install Python, then type
+You need Python3 and pygame to play. Install Python, then type
 
 ```
-pip install pygame
+pip3 install pygame
 ```
 
 and you should be ready to go.
@@ -20,7 +20,7 @@ Client
 The client component resides in the "client" subdirectory. It can be run with
 
 ```
-python entris.py
+python3 entris.py
 ```
 
 Server
