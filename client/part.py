@@ -56,7 +56,7 @@ def random_part_generator(duck_probability=0.1):
     """
     index_gen = random_part_index_generator(duck_probability)
     while True:
-        yield PARTS[index_gen.next()]
+        yield PARTS[next(index_gen)]
     
 class Part(object):
     def __init__(self, template, row_width):
@@ -75,7 +75,7 @@ class Part(object):
         current = self.template
         storage = {0: current}
         for i in range(1, 4):
-            current = zip(*current[::-1])
+            current = list(zip(*current))[::-1]
             storage[i] = current
         return storage
             
@@ -99,7 +99,7 @@ class Part(object):
                     indexes.append(self.position_index 
                                    + bit_idx 
                                    + idx * self.row_width)
-        return indexes
+        return [int(i) for i in indexes]
 
     def rotation_degree_changed_by(self, degree, clockwise):
         delta = degree if clockwise else -degree
@@ -111,10 +111,10 @@ class Part(object):
         
 if __name__ == '__main__':
     part_gen = random_part_generator(0.5)
-    part_list = [part_gen.next() for i in range(1000)]
+    part_list = [next(part_gen) for i in range(1000)]
     assert part_list.count(DUCK_INDICES) > 400, "Abnormal deviation" 
     part_gen = random_part_generator(0.01)
-    part_list = [part_gen.next() for i in range(1000)]
+    part_list = [next(part_gen) for i in range(1000)]
     assert part_list.count(DUCK_INDICES) > 5, "Abnormal deviation" 
         
         

@@ -146,7 +146,7 @@ class Game(object):
         """
         This method can probably be removed after some refactoring
         """
-        self.piece_queue = deque([self.part_generator.next() for _ in range(10)])
+        self.piece_queue = deque([next(self.part_generator) for _ in range(10)])
 
     def handle_keypress(self, event):
         key = event.key
@@ -367,9 +367,9 @@ class Game(object):
         return self.moving_piece and self.moving_piece.get_indexes() or []
 
     def get_next_piece(self):
-        next = self.piece_queue.popleft()
-        self.piece_queue.append(self.part_generator.next())
-        return next
+        next_piece = self.piece_queue.popleft()
+        self.piece_queue.append(next(self.part_generator))
+        return next_piece
 
     def insert_new_moving_piece(self, template):
         if template == DUCK_INDICES:
