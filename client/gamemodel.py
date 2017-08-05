@@ -313,9 +313,9 @@ class Game(object):
             # Check for border-crossing of horizontal moves
             if direction_delta in (1, -1):
                 active_part_indexes = self.moving_piece.get_indexes()
-                if ([(idx + direction_delta) / self.column_nr
+                if ([int((idx + direction_delta) / self.column_nr)
                      for idx in active_part_indexes]
-                        != [idx / self.column_nr
+                        != [int(idx / self.column_nr)
                             for idx in active_part_indexes]):
                     return False
         except IndexError:
