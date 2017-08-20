@@ -4,10 +4,17 @@ import threading
 import logging
 import json
 import http.client
+import codecs
 from collections import deque
 
 from events import LinesDeletedEvent
 from monitoring import compress
+
+logger = logging.getLogger("networking")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 
 class ConnectionFailed(Exception):
@@ -74,6 +81,7 @@ class ServerEventListener(object):
         # displaying them somewhere.
         self.error_msg = ""
 
+        self.response_reader = codecs.getreader("utf-8")
         self.connection = None
         self.connect_to_game()
 
@@ -117,7 +125,8 @@ class ServerEventListener(object):
                                     "/unregister",
                                     params,
                                     POST_HEADERS)
-            logging.info(self.connection.getresponse().read())
+            resp_json = json.load(self.response_reader(self.connection.getresponse()))
+            logging.info(resp_json)
         except Exception:
             # That's not too bad ...
             logging.info("Unregistration failed")
@@ -126,7 +135,7 @@ class ServerEventListener(object):
     def ask_for_start_permission(self):
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
-            game_info = json.loads(self.connection.getresponse().read().decode())
+            game_info = json.load(self.response_reader(self.connection.getresponse()))
             return game_info['started']
         except:
             self.error_msg = self.CANNOT_CONNECT_MSG
@@ -134,9 +143,10 @@ class ServerEventListener(object):
     def update_players_list(self):
         try:
             self.connection.request("GET", "/status?game_id=%s" % self.game_id)
-            game_info = json.loads(self.connection.getresponse().read().decode())
+            game_info = json.load(self.response_reader(self.connection.getresponse()))
             self.game_size = game_info['size']
-        except Exception:
+        except Exception as ex:
+            logger.error("Update failed %s", ex)
             self.error_msg = "Cannot fetch game data from server"
             return
 
@@ -168,23 +178,24 @@ class ServerEventListener(object):
         of his game in a compressed format.
         """
 
-        params = urllib.parse.urlencodecode({'game_id': self.game_id,
-                                             'player_id': self.player_id,
-                                             'game_snapshot': compress(self.game)})
+        params = urllib.parse.urlencode({'game_id': self.game_id,
+                                         'player_id': self.player_id,
+                                         'game_snapshot': compress(self.game)})
 
         try:
             self.connection.request("GET", "/receive?%s" % params)
-            penalty_info = json.loads(self.connection.getresponse().read().decode())
+            response = self.connection.getresponse()
+            penalty_info = json.load(self.response_reader(response))
             lines_received = penalty_info['penalty']
 
             if lines_received:
                 logging.info("Ouch! Received %s lines" % lines_received)
                 self.game.regurgitate(lines_received)
-        except (http.CannotSendRequest, ValueError):
+        except (http.client.CannotSendRequest, ValueError) as ex:
             # Not too bad ... but we must take care that we
             # don't miss fetching our penalties for too long,
             # otherwise we might get dismissed from the game.
-            logging.info("Getting lines failed: %s")
+            logger.info("Getting lines failed: %s", ex)
 
     def send_lines(self):
         if not self.lines_to_send:
@@ -192,27 +203,27 @@ class ServerEventListener(object):
 
         try:
             lines = self.lines_to_send[0]
-            params = urllib.parse.urlencodecode({'game_id': self.game_id,
-                                                 'player_id': self.player_id,
-                                                 'num_lines': lines})
+            params = urllib.parse.urlencode({'game_id': self.game_id,
+                                             'player_id': self.player_id,
+                                             'num_lines': lines})
             self.connection.request("POST", "/sendlines", params, POST_HEADERS)
-            response = json.loads(self.connection.getresponse().read().decode())
+            response = json.load(self.response_reader(self.connection.getresponse()))
 
             if response["info"].startswith("Added"):
                 # If it worked, remove the element from the deque
                 self.lines_to_send.popleft()
             else:
-                raise http.CannotSendRequest('Sending failed with response %s' % response)
+                raise http.client.CannotSendRequest('Sending failed with response %s' % response)
 
-        except (http.CannotSendRequest, Exception):
+        except (http.client.CannotSendRequest, Exception):
             logging.info("Errors while sending data to server")
 
     def get_next_parts(self):
-        params = urllib.parse.urlencodecode({'game_id': self.game_id,
-                                             'player_id': self.player_id})
+        params = urllib.parse.urlencode({'game_id': self.game_id,
+                                         'player_id': self.player_id})
         try:
             self.connection.request("GET", "/getparts?%s" % params)
-            return json.loads(self.connection.getresponse().read().decode())
+            return json.load(self.response_reader(self.connection.getresponse()))
         except:
             # This may fail from time to time ...
             return []
@@ -243,8 +254,10 @@ class ServerEventListener(object):
 
                 self.connection.request("GET", "/register?game_id=%s&screen_name=%s"
                                         % (self.game_id, self.screen_name))
-                response = json.loads(self.connection.getresponse().read().decode())
-                self.player_id = response['player_id']
+
+                response = self.connection.getresponse()
+                json_response = json.load(self.response_reader(response))
+                self.player_id = json_response['player_id']
 
                 return
             except Exception as ex:

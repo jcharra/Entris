@@ -1,18 +1,29 @@
 
 try:
-	import httplib as http
+    import httplib as http
 except ImportError:
-	import http.client as http
+    import http.client as http
 
 try:
     import json
 except ImportError:
-    import simplejson as json 
+    import simplejson as json
+
+import logging
+import codecs
+
+from pygame.locals import K_r, K_RETURN, K_UP, K_DOWN
 
 from statewindows import StateWindow
 from config import SCREEN_DIMENSIONS, MAX_NUMBER_OF_GAMES
-from pygame.locals import K_r, K_RETURN, K_UP, K_DOWN
 from networking import DEFAULT_SERVER
+
+logger = logging.getLogger("lobby")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+
 
 class Lobby(StateWindow):
     
@@ -53,6 +64,8 @@ class Lobby(StateWindow):
 
         # Function that will yield the lobby's server address
         self.server_info_func = lambda: None
+
+        self.response_reader = codecs.getreader("utf-8")
         
     def get_game_data(self):
         try:
@@ -64,15 +77,16 @@ class Lobby(StateWindow):
                 connection = http.HTTPConnection(server_address)
 
             connection.request("GET", "/list")
-            data = connection.getresponse().read()
-            
+            resp_json = json.load(self.response_reader(connection.getresponse()))
+
             # Read response and filter out started 
             # games (as we cannot join those anymore)
-            games = {gid: game for gid, game in json.loads(data).iteritems()
+            games = {gid: game for gid, game in resp_json.items()
                      if not game['started']}
 
             self.game_configs = sorted(games.values(), key=lambda g: g['game_id'])
-        except Exception:
+        except Exception as ex:
+            logger.error(ex)
             self.subtitle = "Error connecting to server"
     
     def as_dict(self):

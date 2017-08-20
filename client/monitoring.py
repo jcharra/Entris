@@ -1,9 +1,11 @@
-
 import sys
-import math
+
 import pygame
+
+import math
 from part import random_part_generator
-    
+
+
 def compress(game):
     """
     Builds a compressed version of a game instance
@@ -31,7 +33,7 @@ def decompress(compressed):
     number_of_rows = len(data)/row_length
     
     bin_array = []
-    for idx in range(number_of_rows):
+    for idx in range(int(number_of_rows)):
         bin_array.append([int(x) for x in data[idx*row_length:(idx+1)*row_length]])
     
     return bin_array
