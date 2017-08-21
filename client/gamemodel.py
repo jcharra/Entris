@@ -231,6 +231,10 @@ class Game(object):
         else:
             # create and insert a new piece
             next_piece = self.get_next_piece()
+
+            if not next_piece:
+                return
+
             self.insert_new_moving_piece(next_piece)
 
             # If there is any overlap with existing pieces, we're screwed
@@ -431,7 +435,7 @@ class MultiplayerGame(Game):
             next_parts = [get_part_for_index(idx)
                           for idx in self.listener.get_next_parts()]
             self.piece_queue.extend(next_parts)
-        return self.piece_queue.popleft()
+        return self.piece_queue.popleft() if self.piece_queue else None
 
     def regurgitate(self, number_of_lines):
         """

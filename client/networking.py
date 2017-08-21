@@ -27,6 +27,9 @@ POST_HEADERS = {"Content-type": "application/x-www-form-urlencoded",
 DEFAULT_SERVER = "entris.charra.de"
 
 
+# DEFAULT_SERVER = "localhost:8888"
+
+
 def initialize_network_game(config):
     server_address = config['server_name']
     if ":" in server_address:
